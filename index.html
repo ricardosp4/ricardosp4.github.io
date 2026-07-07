@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ricardo Sales Piquer — Computational Mathematics &amp; Geospatial Statistics</title>
+<meta name="description" content="Computational Mathematics graduate working on spatio-temporal statistics, geospatial technologies, and applied research.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="grain"></div>
+
+<nav class="nav">
+  <a href="#top" class="nav__mark">RSP</a>
+  <div class="nav__links">
+    <a href="#about">About</a>
+    <a href="#work">Research</a>
+    <a href="#projects">Projects</a>
+    <a href="#skills">Skills</a>
+    <a href="#contact">Contact</a>
+  </div>
+</nav>
+
+<header id="top" class="hero">
+  <canvas id="field" class="hero__canvas" aria-hidden="true"></canvas>
+  <div class="hero__content">
+    <p class="eyebrow">Computational Mathematics &nbsp;·&nbsp; Geospatial Technologies</p>
+    <h1 class="hero__title">Where ignition<br>becomes pattern.</h1>
+    <p class="hero__sub">I model how events cluster in space and time — from wildfire ignitions to compressed data streams — and build the tools to test those models against reality.</p>
+    <div class="hero__actions">
+      <a href="#projects" class="btn btn--primary">See projects</a>
+      <a href="#contact" class="btn btn--ghost">Get in touch</a>
+    </div>
+  </div>
+  <div class="hero__scroll" aria-hidden="true">
+    <span></span>
+  </div>
+</header>
+
+<main>
+
+  <section id="about" class="section">
+    <div class="section__head">
+      <span class="tag-label">01 — About</span>
+    </div>
+    <div class="about__grid">
+      <p class="about__lead">Computational Mathematics graduate from Universitat Jaume I, currently completing an MSc in Geospatial Technologies through the Erasmus Mundus programme — a joint degree across NOVA IMS (Lisbon), the University of Münster (IFGI), and Universitat Jaume I.</p>
+      <p class="about__body">My work moves between mathematical theory and applied implementation: I've optimised low-level memory algorithms for scientific data compression, analysed clinical datasets to flag hospital risk factors, and I'm now building a Bayesian spatio-temporal model of wildfire ignition risk across the Iberian Peninsula for my thesis, supervised by Jorge Mateu and Edzer Pebesma. I work comfortably in Python and R, and I like building tools other people can actually use — not just papers that describe them.</p>
+    </div>
+  </section>
+
+  <section id="work" class="section">
+    <div class="section__head">
+      <span class="tag-label">02 — Research &amp; Experience</span>
+    </div>
+
+    <div class="ledger">
+
+      <article class="entry">
+        <div class="entry__meta">
+          <span class="entry__date">2025 — ongoing</span>
+          <span class="entry__place">Lisbon · Münster · Castellón</span>
+        </div>
+        <div class="entry__body">
+          <h3>MSc Geospatial Technologies <span class="entry__org">Erasmus Mundus — NOVA IMS / WWU Münster / UJI</span></h3>
+          <p>Thesis: a spatio-temporal Hawkes process model of wildfire ignitions on the Iberian Peninsula, built with INLA and combining fire registry data (EGIF / SGIF / ICNF) with environmental covariates — NDVI, soil moisture, land use, road proximity — evaluated against a covariate-only baseline.</p>
+        </div>
+      </article>
+
+      <article class="entry">
+        <div class="entry__meta">
+          <span class="entry__date">Nov 2024 — Feb 2025</span>
+          <span class="entry__place">Castellón, Spain</span>
+        </div>
+        <div class="entry__body">
+          <h3>Research Assistant, Clinical Data Analysis <span class="entry__org">GIANT research group, Universitat Jaume I</span></h3>
+          <p>Investigated rescue failure patterns in hospital admissions — literature review, dataset analysis, and logistic regression / clustering to surface risk factors for patient deterioration.</p>
+        </div>
+      </article>
+
+      <article class="entry">
+        <div class="entry__meta">
+          <span class="entry__date">Jan — Apr 2025</span>
+          <span class="entry__place">Grao de Castellón, Spain</span>
+        </div>
+        <div class="entry__body">
+          <h3>Scientific Computing &amp; Data Optimization <span class="entry__org">ironArray SLU</span></h3>
+          <p>Curricular internship improving matrix transposition and memory layout for the Blosc2 compression library, with benchmarks against NumPy. Results written up on the ironArray blog.</p>
+          <a class="entry__link" href="https://www.blosc.org/posts/optimizing-chunks-transpose/" target="_blank" rel="noopener">Read the write-up →</a>
+        </div>
+      </article>
+
+    </div>
+  </section>
+
+  <section id="projects" class="section">
+    <div class="section__head">
+      <span class="tag-label">03 — Projects</span>
+    </div>
+
+    <div class="project-card">
+      <div class="project-card__top">
+        <span class="mono-tag">R package</span>
+        <h3>stevents</h3>
+      </div>
+      <p>An open-source R package for spatio-temporal event analysis, built from scratch around a vectorised Hawkes-process intensity kernel. Includes S3 classes for event sets and spatial grids, neighbourhood and counting utilities, two vignettes, bundled real-world datasets, and a full testthat suite with CI.</p>
+      <ul class="project-card__facts">
+        <li><span>Core method</span> Vectorised O(n²) exponential decay intensity kernel</li>
+        <li><span>Coverage</span> 24 unit tests, GitHub Actions CI</li>
+        <li><span>Datasets</span> Venezuela 2026 · Amatrice 2016</li>
+      </ul>
+      <div class="project-card__links">
+        <a href="https://github.com/ricardosp4/stevents" target="_blank" rel="noopener" class="btn btn--primary btn--sm">View on GitHub</a>
+      </div>
+    </div>
+  </section>
+
+  <section id="skills" class="section">
+    <div class="section__head">
+      <span class="tag-label">04 — Skills</span>
+    </div>
+
+    <div class="skills__grid">
+      <div class="skills__group">
+        <h4>Mathematics &amp; Statistics</h4>
+        <div class="tags">
+          <span>Spatial statistics</span><span>Point processes</span><span>Probability theory</span>
+          <span>Numerical analysis</span><span>Statistical modelling</span><span>Linear algebra</span>
+        </div>
+      </div>
+      <div class="skills__group">
+        <h4>Computing</h4>
+        <div class="tags">
+          <span>Python</span><span>R</span><span>SQL</span><span>Git</span>
+          <span>Linux</span><span>MATLAB</span><span>Scientific computing</span>
+        </div>
+      </div>
+      <div class="skills__group">
+        <h4>Geospatial</h4>
+        <div class="tags">
+          <span>GIS</span><span>Remote sensing</span><span>Spatial data analysis</span>
+          <span>ArcGIS</span><span>Geospatial data mining</span>
+        </div>
+      </div>
+      <div class="skills__group">
+        <h4>Languages</h4>
+        <div class="tags">
+          <span>Spanish — native</span><span>Catalan — C1</span><span>English — C1</span>
+          <span>French — A2</span><span>Portuguese — A1</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer id="contact" class="footer">
+  <div class="footer__inner">
+    <p class="footer__prompt">Open to research, data science, and applied roles at the intersection of statistics and real-world problems.</p>
+    <div class="footer__links">
+      <a href="mailto:ricardosalespiquer@gmail.com">ricardosalespiquer@gmail.com</a>
+      <a href="https://www.linkedin.com/in/ricardo-sales-piquer" target="_blank" rel="noopener">LinkedIn</a>
+      <a href="https://github.com/ricardosp4" target="_blank" rel="noopener">GitHub</a>
+    </div>
+    <p class="footer__meta">Burriana, Spain · Münster, Germany</p>
+  </div>
+</footer>
+
+<script src="script.js"></script>
+</body>
+</html>
