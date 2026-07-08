@@ -22,12 +22,12 @@
   window.addEventListener('resize', resize);
 
   const EMBER = '193, 89, 42';
-  const MOSS = '107, 125, 95';
+  const MOSS = '140, 164, 124';
 
-  const MU = 0.012;        // background (immigrant) rate per frame
-  const BRANCHING = 0.55;  // expected offspring per ignition
+  const MU = 0.02;         // background (immigrant) rate per frame
+  const BRANCHING = 0.65;  // expected offspring per ignition
   const DECAY = 0.985;     // temporal decay of a point's excitation influence
-  const MAX_POINTS = 90;
+  const MAX_POINTS = 140;
 
   let points = [];
 
@@ -37,14 +37,14 @@
       age: 0,
       life: 160 + Math.random() * 140,
       gen,                 // generation: 0 = background, >0 = triggered
-      r: gen === 0 ? 2.4 : 1.6,
+      r: gen === 0 ? 3.4 : 2.3,
       color: gen === 0 ? EMBER : MOSS,
       spawned: false
     });
   }
 
   function seed() {
-    for (let i = 0; i < 14; i++) {
+    for (let i = 0; i < 26; i++) {
       spawn(Math.random() * W, Math.random() * H, 0);
     }
   }
@@ -88,13 +88,13 @@
 
       ctx.beginPath();
       ctx.arc(p.x, p.y, ringR, 0, Math.PI * 2);
-      ctx.strokeStyle = `rgba(${p.color}, ${alpha * 0.18})`;
-      ctx.lineWidth = 1;
+      ctx.strokeStyle = `rgba(${p.color}, ${alpha * 0.35})`;
+      ctx.lineWidth = 1.2;
       ctx.stroke();
 
       ctx.beginPath();
       ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-      ctx.fillStyle = `rgba(${p.color}, ${alpha * 0.9})`;
+      ctx.fillStyle = `rgba(${p.color}, ${alpha})`;
       ctx.fill();
     }
   }
@@ -108,12 +108,12 @@
   if (reduceMotion) {
     // static, denser scatter, no animation loop
     points = [];
-    for (let i = 0; i < 40; i++) {
+    for (let i = 0; i < 55; i++) {
       const gen = Math.random() < 0.4 ? 0 : 1;
       points.push({
         x: Math.random() * W, y: Math.random() * H,
         age: 40, life: 200, gen,
-        r: gen === 0 ? 2.4 : 1.6,
+        r: gen === 0 ? 3.4 : 2.3,
         color: gen === 0 ? EMBER : MOSS
       });
     }

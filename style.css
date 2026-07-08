@@ -4,17 +4,17 @@
   --ink-3: #202A2E;
   --paper: #EDE7D9;
   --paper-dim: #B9B4A4;
-  --moss: #6B7D5F;
+  --moss: #8CA47C;
   --moss-dim: #3E4A38;
   --ember: #C1592A;
   --ember-soft: rgba(193, 89, 42, 0.35);
   --ash: #8B9089;
   --line: rgba(237, 231, 217, 0.12);
-
+ 
   --font-display: 'Fraunces', serif;
   --font-body: 'IBM Plex Sans', -apple-system, sans-serif;
   --font-mono: 'IBM Plex Mono', 'SFMono-Regular', monospace;
-
+ 
   --max: 920px;
 }
 
@@ -186,7 +186,7 @@ a { color: inherit; }
 .section__head { margin-bottom: 40px; }
 .tag-label {
   font-family: var(--font-mono);
-  font-size: 12.5px;
+  font-size: 16.5px;
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--moss);
@@ -199,7 +199,7 @@ a { color: inherit; }
 .about__lead {
   font-family: var(--font-display);
   font-size: clamp(1.3rem, 2.4vw, 1.7rem);
-  font-weight: 500;
+  font-weight: 600;
   line-height: 1.4;
   color: var(--paper);
   margin: 0;
