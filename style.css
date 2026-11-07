@@ -261,7 +261,10 @@ a { color: inherit; }
 }
 .entry__link:hover { border-color: var(--moss); }
 
+.entry__link + .entry__link { margin-left: 18px; }
+
 /* Project card */
+.projects { display: grid; gap: 24px; }
 .project-card {
   border: 1px solid var(--line);
   border-radius: 6px;
