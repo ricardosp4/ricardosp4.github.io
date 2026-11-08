@@ -3,310 +3,172 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Ricardo Sales Piquer | Data Science &amp; Spatio-Temporal Statistics</title>
-<meta name="description" content="Computational Mathematics graduate and MSc student in Geospatial Technologies, working on spatio-temporal statistics, machine learning and geospatial data.">
+<title>Ricardo Sales Piquer</title>
+<meta name="theme-color" content="#E6ECEE" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#1E2740" media="(prefers-color-scheme: dark)">
+<meta name="description" content="Ricardo Sales Piquer, a mathematician who works with data, maps and models. Portfolio, projects and contact.">
+<script>
+  try {
+    var saved = localStorage.getItem('theme');
+    if (saved === 'light' || saved === 'dark') document.documentElement.dataset.theme = saved;
+  } catch (e) {}
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500&family=IBM+Plex+Sans:wght@400;500&family=IBM+Plex+Mono:wght@400&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<div class="grain"></div>
+<a class="skip" href="#about">Skip to content</a>
 
-<nav class="nav">
-  <a href="#top" class="nav__mark">RSP</a>
-  <div class="nav__links">
+<!-- The desk and the book live in one canvas behind the page.
+     The hero and the work section are transparent and show it;
+     the about, experience and contact sections cover it. -->
+<canvas id="desk" aria-hidden="true"></canvas>
+
+<header class="nav">
+  <a href="#top" class="nav__name" translate="no">Ricardo Sales Piquer</a>
+  <nav class="nav__pill" aria-label="Sections">
     <a href="#about">About</a>
-    <a href="#work">Research</a>
-    <a href="#projects">Projects</a>
-    <a href="#skills">Skills</a>
+    <a href="#work">Projects</a>
     <a href="#contact">Contact</a>
-  </div>
-</nav>
-
-<header id="top" class="hero">
-  <canvas id="field" class="hero__canvas" aria-hidden="true"></canvas>
-  <div class="hero__content">
-    <p class="eyebrow">Computational Mathematics &nbsp;·&nbsp; Geospatial Technologies</p>
-    <h1 class="hero__title">Finding pattern<br>in scattered data.</h1>
-    <p class="hero__sub">I turn messy spatial and temporal data into models across compression algorithms, clinical outcomes, and environmental risk, and build the tools to test them against reality.</p>
-    <div class="hero__actions">
-      <a href="#projects" class="btn btn--primary">See projects</a>
-      <a href="#contact" class="btn btn--ghost">Get in touch</a>
-    </div>
-  </div>
-  <div class="hero__scroll" aria-hidden="true">
-    <span></span>
+  </nav>
+  <div class="nav__end">
+    <a href="#contact" class="status"><span class="status__dot" aria-hidden="true"></span>Open to work</a>
+    <button class="theme-toggle" type="button" aria-label="Switch to dark mode">
+      <svg class="theme-toggle__moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg>
+      <svg class="theme-toggle__sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+    </button>
   </div>
 </header>
 
 <main>
 
-  <section id="about" class="section">
-    <div class="section__head">
-      <span class="tag-label">About</span>
-    </div>
-    <div class="about__grid">
-      <p class="about__lead">Computational Mathematics graduate from Universitat Jaume I, currently finishing an Erasmus Mundus MSc in Geospatial Technologies across NOVA IMS (Lisbon), the University of Münster and Universitat Jaume I.</p>
-      <p class="about__body">My work moves between mathematical theory and applied implementation. I've optimised low-level memory algorithms for scientific data compression, analysed clinical datasets to flag hospital risk factors, and mapped floods from satellite imagery with machine learning. For my thesis, supervised by Jorge Mateu and Edzer Pebesma, I'm modelling lightning strikes in southern France as a self-exciting point process. I work comfortably in Python and R, and I like building tools other people can actually use, not just papers that describe them.</p>
-      <p class="about__body">In the last year I've lived in Lisbon, Münster and Castellón, and moving that often taught me to settle in fast and figure things out on the go. I speak Spanish, Catalan and English, and I get by in French and Portuguese.</p>
-      <p class="about__body">Before all of that, I spent two and a half years as a youth activity instructor. I think everyone should have a job taking care of people at least once. It shows you how to treat others when they depend on you, and that has stayed with me more than any course.</p>
-      <p class="about__body">I also helped organise GeoMundus 2026, an international conference run by students. Coordinating speakers, sponsors and venues with a group of friends showed me how much I enjoy building something with other people.</p>
-      <p class="about__body">I work best where there's trust and people share ideas openly. Outside work, most of my time goes to my family and friends.</p>
+  <section id="top" class="hero">
+    <div class="hero__text">
+      <h1 class="hero__title">Hi, I'm Ricardo.</h1>
+      <p class="hero__sub">I'm a mathematician who works with data, maps and models.</p>
+      <div class="hero__actions">
+        <a href="#work" class="btn btn--solid">Open my projects</a>
+        <a href="#about" class="btn btn--line">About me</a>
+      </div>
     </div>
   </section>
 
-  <section id="work" class="section">
-    <div class="section__head">
-      <span class="tag-label">Research &amp; Experience</span>
-    </div>
-
-    <div class="ledger">
-
-      <article class="entry">
-        <div class="entry__meta">
-          <span class="entry__date">Sep 2025 to Feb 2027</span>
-          <span class="entry__place">Lisbon · Münster · Castellón</span>
-        </div>
-        <div class="entry__body">
-          <h3>MSc Geospatial Technologies <span class="entry__org">Erasmus Mundus · NOVA IMS / University of Münster / UJI</span></h3>
-          <p>Joint degree across Portugal, Germany and Spain. Thesis: a spatio-temporal Hawkes process model of lightning strikes in Ardèche and Drôme (France), 1990 to 2010, with convective and topographic covariates from ERA5 and a DEM. It compares maximum likelihood, EM with INLA (EMbru) and a neural approach on held-out years.</p>
-        </div>
-      </article>
-
-      <article class="entry">
-        <div class="entry__meta">
-          <span class="entry__date">Oct 2026</span>
-          <span class="entry__place">Castellón, Spain</span>
-        </div>
-        <div class="entry__body">
-          <h3>Organising team <span class="entry__org">GeoMundus 2026</span></h3>
-          <p>18th edition of the international conference run by students of the Erasmus Mundus MSc in Geospatial Technologies, themed on geospatial intelligence for disaster resilience. Worked on venues, logistics and the participant experience.</p>
-          <a class="entry__link" href="https://geomundus.org" target="_blank" rel="noopener">geomundus.org →</a>
-        </div>
-      </article>
-
-      <article class="entry">
-        <div class="entry__meta">
-          <span class="entry__date">Jan to Apr 2025</span>
-          <span class="entry__place">Castellón, Spain</span>
-        </div>
-        <div class="entry__body">
-          <h3>Scientific Computing &amp; Data Optimization Intern <span class="entry__org">ironArray SLU</span></h3>
-          <p>Curricular internship improving matrix transposition, chunk layout and matrix multiplication in the Blosc2 compression library, with benchmarks against NumPy. Results written up on the Blosc blog.</p>
-          <a class="entry__link" href="https://www.blosc.org/posts/optimizing-chunks-transpose/" target="_blank" rel="noopener">Fast compressed transposition →</a>
-          <a class="entry__link" href="https://blosc.org/posts/optimizing-chunks-blosc2/" target="_blank" rel="noopener">Chunks for matrix multiplication →</a>
-        </div>
-      </article>
-
-      <article class="entry">
-        <div class="entry__meta">
-          <span class="entry__date">Nov 2024 to Feb 2025</span>
-          <span class="entry__place">Castellón, Spain</span>
-        </div>
-        <div class="entry__body">
-          <h3>Research Assistant, Clinical Data Analysis <span class="entry__org">GIANT research group, Universitat Jaume I</span></h3>
-          <p>Investigated rescue failure patterns in hospital admissions: literature review, analysis of real hospital databases, and logistic regression and clustering to surface risk factors for patient deterioration.</p>
-        </div>
-      </article>
-
-      <article class="entry">
-        <div class="entry__meta">
-          <span class="entry__date">Sep 2021 to Jul 2025</span>
-          <span class="entry__place">Castellón, Spain</span>
-        </div>
-        <div class="entry__body">
-          <h3>BSc Computational Mathematics <span class="entry__org">Universitat Jaume I</span></h3>
-          <p>Mathematical modelling, numerical analysis, statistics and scientific computing.</p>
-        </div>
-      </article>
-
-      <article class="entry">
-        <div class="entry__meta">
-          <span class="entry__date">Apr 2022 to Jul 2024</span>
-          <span class="entry__place">Burriana · Benicàssim, Spain</span>
-        </div>
-        <div class="entry__body">
-          <h3>Youth Activity Instructor <span class="entry__org">Les Escoles de la Mar · Tecninau</span></h3>
-          <p>Summer and Easter seasons looking after children and teenagers between sailing sessions. Planned group games, workshops and sports, ran daily routines from meals to night activities, and coordinated handovers with the sailing instructors. Responsible for the group's safety and wellbeing, and for sorting out conflicts when they came up.</p>
-        </div>
-      </article>
-
+  <section id="about" class="about sheet">
+    <div class="wrap about__grid">
+      <h2 class="section-title">About</h2>
+      <div class="about__text">
+        <p class="about__lead">Computational Mathematics graduate from Universitat Jaume I, finishing an Erasmus Mundus MSc in Geospatial Technologies across Lisbon, Münster and Castellón.</p>
+        <p>What I enjoy most is taking something from theory and making it work on real data, especially when the result matters to someone outside a paper. Right now that means data science: finding the patterns in a dataset that nobody had spotted yet, and turning them into something people can use.</p>
+        <p>In the last year I've lived in Lisbon, Münster and Castellón, and moving that often taught me to settle in fast and figure things out on the go. I speak Spanish, Catalan and English, and I get by in French and Portuguese.</p>
+        <p>Before all of that, I spent two and a half years as a youth activity instructor. I think everyone should have a job taking care of people at least once. It shows you how to treat others when they depend on you, and that has stayed with me more than any course.</p>
+        <p>I also helped organise GeoMundus 2026, an international conference run by students. Coordinating speakers, sponsors and venues with a group of friends showed me how much I enjoy building something with other people.</p>
+        <p>I work best where there's trust and people share ideas openly. Outside work, most of my time goes to my family and friends.</p>
+      </div>
     </div>
   </section>
 
-  <section id="projects" class="section">
-    <div class="section__head">
-      <span class="tag-label">Projects</span>
+  <!-- Projects: a book on the desk. The section is tall so the book can be
+       pinned while scrolling turns its pages. The same projects are written
+       out below as a plain catalogue, which screen readers use and which
+       replaces the book on phones and without WebGL. -->
+  <section id="work" class="work" aria-labelledby="work-title">
+    <div class="work__pin">
+      <p class="work__title" aria-hidden="true">Projects</p>
+      <div class="book-ui" aria-hidden="true">
+        <button class="book-ui__btn" type="button" data-dir="-1" tabindex="-1" aria-label="Previous page">
+          <svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg>
+        </button>
+        <span class="book-ui__label">Scroll or click a page</span>
+        <button class="book-ui__btn" type="button" data-dir="1" tabindex="-1" aria-label="Next page">
+          <svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg>
+        </button>
+        <a class="book-ui__link" href="#" target="_blank" rel="noopener" tabindex="-1" hidden>View on GitHub</a>
+      </div>
     </div>
 
-    <div class="projects">
-
-      <div class="project-card">
-        <div class="project-card__top">
-          <span class="mono-tag">R package</span>
-          <h3>stevents</h3>
+    <div class="catalog wrap">
+      <h2 class="section-title catalog__title" id="work-title">Projects</h2>
+      <article class="catalog__item" id="p-lightning">
+        <figure class="catalog__img render" data-render="lightning.jpg">
+          <img src="images/lightning.jpg" width="1344" height="832" alt="Relief model of mountains with thin lightning strands touching the peaks and orange points glowing in clusters" loading="lazy" onerror="this.remove()">
+        </figure>
+        <div>
+          <p class="catalog__num">01</p>
+          <h3>Lightning that follows lightning</h3>
+          <p>Lightning doesn't fall at random. When one strike hits, more tend to follow nearby and soon after, a bit like aftershocks after an earthquake. In my master's thesis I'm measuring how much of that clustering comes from the storm itself (heat, humidity, mountains) and how much is one strike making the next one more likely. The data: twenty years of strikes over two regions of southern France.</p>
+          <p class="catalog__meta">Master's thesis, in progress, 2026 to 2027</p>
         </div>
-        <p>An open-source R package for spatio-temporal event analysis, built from scratch around a vectorised Hawkes-process intensity kernel. Includes S3 classes for event sets and spatial grids, neighbourhood and counting utilities, two vignettes, bundled real-world datasets, and a full testthat suite with CI.</p>
-        <ul class="project-card__facts">
-          <li><span>Core method</span> Vectorised O(n²) exponential decay intensity kernel</li>
-          <li><span>Coverage</span> 24 unit tests, GitHub Actions CI</li>
-          <li><span>Datasets</span> Venezuela 2026 · Amatrice 2016</li>
-        </ul>
-        <div class="project-card__links">
-          <a href="https://github.com/ricardosp4/stevents" target="_blank" rel="noopener" class="btn btn--primary btn--sm">View on GitHub</a>
-        </div>
-      </div>
-
-      <div class="project-card">
-        <div class="project-card__top">
-          <span class="mono-tag">Machine learning · Remote sensing</span>
-          <h3>Valencia flood mapping</h3>
-        </div>
-        <p>Random Forest classification of the flood extent left by the October 2024 DANA in Valencia, combining Sentinel-1 SAR and Sentinel-2 optical data in Google Earth Engine. The floodwater was full of sediment, so standard water indices missed much of it; adding a mud-sensitive index fixed that, and it came out as the second most important predictor.</p>
-        <ul class="project-card__facts">
-          <li><span>Features</span> 35-band stack: spectral indices, GLCM texture, morphological filters</li>
-          <li><span>Validation</span> 70/30 split, accuracy, kappa, per-class F1</li>
-          <li><span>Context</span> Team of three, University of Münster, 2026</li>
-        </ul>
-        <div class="project-card__links">
-          <a href="https://github.com/ricardosp4/sentinel-flood-rf-valencia" target="_blank" rel="noopener" class="btn btn--primary btn--sm">View on GitHub</a>
-        </div>
-      </div>
-
-      <div class="project-card">
-        <div class="project-card__top">
-          <span class="mono-tag">Spatial database · API</span>
+      </article>
+      <article class="catalog__item" id="p-hazard">
+        <figure class="catalog__img render" data-render="network.jpg">
+          <img src="images/network.jpg" width="1344" height="832" alt="Printed city map with orange pins, each tied by a thread to the nearest blue pin" loading="lazy" onerror="this.remove()">
+        </figure>
+        <div>
+          <p class="catalog__num">02</p>
           <h3>Community Hazard Response Platform</h3>
+          <p>When a disaster hits a neighbourhood, like a flood or a wildfire, much of the first help comes from the people living next door. But those who need help and those who can give it often don't know about each other. We built a platform where residents report what they need, volunteers say what they can offer, and a map-aware database pairs each request with the nearest helper.</p>
+          <p class="catalog__meta">Group project, NOVA IMS Lisbon, 2026</p>
+          <a class="catalog__link" href="https://github.com/Community-Hazard-Response-Platform/Community-Hazard-Response-Platform" target="_blank" rel="noopener">View on GitHub</a>
         </div>
-        <p>A platform for coordinating community responses to local emergencies: residents report needs, volunteers offer help, and the system matches them by proximity. Built on PostgreSQL with PostGIS, with OpenStreetMap layers for administrative areas and emergency facilities, and a Flask API on top.</p>
-        <ul class="project-card__facts">
-          <li><span>Stack</span> PostgreSQL · PostGIS · Python / Flask</li>
-          <li><span>Context</span> Pair project, NOVA IMS, 2026</li>
-        </ul>
-        <div class="project-card__links">
-          <a href="https://github.com/Community-Hazard-Response-Platform/Community-Hazard-Response-Platform" target="_blank" rel="noopener" class="btn btn--primary btn--sm">View on GitHub</a>
+      </article>
+      <article class="catalog__item" id="p-flood">
+        <figure class="catalog__img render" data-render="flood.jpg">
+          <img src="images/flood.jpg" width="1344" height="832" alt="Diorama of a coastal plain with fields and a town, partly flooded with translucent blue resin" loading="lazy" onerror="this.remove()">
+        </figure>
+        <div>
+          <p class="catalog__num">03</p>
+          <h3>Mapping the Valencia flood from space</h3>
+          <p>In October 2024 a storm flooded large parts of Valencia. I used satellite images to map which areas were under water. The tricky part: the water was so full of mud that the usual methods didn't recognise it as water. Adding a measure that picks up mud fixed it, and it became one of the most useful signals for the model.</p>
+          <p class="catalog__meta">Team project, University of Münster, 2026</p>
+          <a class="catalog__link" href="https://github.com/ricardosp4/sentinel-flood-rf-valencia" target="_blank" rel="noopener">View on GitHub</a>
         </div>
-      </div>
-
-      <div class="project-card">
-        <div class="project-card__top">
-          <span class="mono-tag">Drones · LiDAR</span>
-          <h3>River Aa renaturation</h3>
-        </div>
-        <p>Monitoring how a straightened agricultural channel in Münster has recovered into a meandering river, combining drone imagery, LiDAR and ground sensors. Delivered as an interactive Story Map, built by three coordinated teams over a semester.</p>
-        <ul class="project-card__facts">
-          <li><span>Context</span> Unmanned Aerial Systems for Applied Research seminar, University of Münster, 2026</li>
-        </ul>
-      </div>
-
-      <div class="project-card">
-        <div class="project-card__top">
-          <span class="mono-tag">In progress · Thesis</span>
-          <h3>Lightning as a self-exciting process</h3>
-        </div>
-        <p>Do lightning strikes trigger more strikes nearby once you account for the weather and the terrain? Two decades of strike data from Ardèche and Drôme, modelled as a spatio-temporal Hawkes process with ERA5 covariates (CAPE, mid-level humidity, wind shear) and elevation.</p>
-        <ul class="project-card__facts">
-          <li><span>Methods</span> Maximum likelihood · EMbru (EM + INLA) · neural point process</li>
-          <li><span>Status</span> Ongoing, Sep 2026 to Feb 2027</li>
-        </ul>
-      </div>
-
+      </article>
     </div>
   </section>
 
-  <section id="skills" class="section">
-    <div class="section__head">
-      <span class="tag-label">Skills</span>
-    </div>
+  <section id="experience" class="experience sheet">
+    <div class="wrap">
+      <h2 class="section-title">Experience</h2>
+      <ol class="timeline">
+        <li><span class="timeline__when">2026</span><span class="timeline__what">Organising team, <a href="https://geomundus.org" target="_blank" rel="noopener">GeoMundus 2026</a></span><span class="timeline__where">Castellón</span></li>
+        <li><span class="timeline__when">2025</span><span class="timeline__what">Scientific computing intern, Blosc2 (<a href="https://www.blosc.org/posts/optimizing-chunks-transpose/" target="_blank" rel="noopener">post</a>)</span><span class="timeline__where">ironArray</span></li>
+        <li><span class="timeline__when">2024 to 2025</span><span class="timeline__what">Research assistant, clinical data analysis</span><span class="timeline__where">GIANT group, UJI</span></li>
+        <li><span class="timeline__when">2022 to 2024</span><span class="timeline__what">Youth activity instructor</span><span class="timeline__where">Les Escoles de la Mar</span></li>
+      </ol>
 
-    <div class="skills__grid">
-      <div class="skills__group">
-        <h4>Mathematics &amp; Statistics</h4>
-        <div class="tags">
-          <span>Spatial statistics</span><span>Point processes</span><span>Hawkes processes</span>
-          <span>Bayesian inference (INLA)</span><span>Probability theory</span><span>Numerical analysis</span>
-          <span>Statistical modelling</span><span>Linear algebra</span>
-        </div>
-      </div>
-      <div class="skills__group">
-        <h4>Machine Learning</h4>
-        <div class="tags">
-          <span>Random Forest</span><span>Logistic regression</span><span>Clustering</span>
-          <span>Model validation</span>
-        </div>
-      </div>
-      <div class="skills__group">
-        <h4>Computing</h4>
-        <div class="tags">
-          <span>Python</span><span>R</span><span>SQL</span><span>Git</span>
-          <span>Linux</span><span>MATLAB</span><span>R package development</span>
-          <span>GitHub Actions</span><span>Scientific computing</span>
-        </div>
-      </div>
-      <div class="skills__group">
-        <h4>Geospatial</h4>
-        <div class="tags">
-          <span>GIS</span><span>Remote sensing</span><span>Sentinel-1 / Sentinel-2</span>
-          <span>Google Earth Engine</span><span>PostGIS</span><span>ERA5 reanalysis</span>
-          <span>ArcGIS</span><span>Spatial data analysis</span>
-        </div>
-      </div>
-      <div class="skills__group">
-        <h4>Languages</h4>
-        <div class="tags">
-          <span>Spanish (native)</span><span>Catalan (C1)</span><span>English (C1)</span>
-          <span>French (A2)</span><span>Portuguese (A1)</span>
-        </div>
-      </div>
+      <h2 class="section-title">Education</h2>
+      <ol class="timeline">
+        <li><span class="timeline__when">2025 to 2027</span><span class="timeline__what">MSc Geospatial Technologies, Erasmus Mundus</span><span class="timeline__where">NOVA IMS, Münster, UJI</span></li>
+        <li><span class="timeline__when">2021 to 2025</span><span class="timeline__what">BSc Computational Mathematics</span><span class="timeline__where">Universitat Jaume I</span></li>
+      </ol>
+      <dl class="tools">
+        <div><dt>Statistics</dt><dd>Point processes, Hawkes models, Bayesian inference with INLA, spatial statistics</dd></div>
+        <div><dt>Machine learning</dt><dd>Random Forest, logistic regression, clustering, model validation</dd></div>
+        <div><dt>Code</dt><dd>Python, R, SQL, Git, R packages with CI (<a href="https://github.com/ricardosp4/stevents" target="_blank" rel="noopener">stevents</a>)</dd></div>
+        <div><dt>Geospatial</dt><dd>Sentinel-1 and 2, Google Earth Engine, PostGIS, ERA5</dd></div>
+      </dl>
     </div>
   </section>
 
 </main>
 
-<footer id="contact" class="footer">
-  <div class="footer__inner">
-    <span class="tag-label">Contact</span>
-
-    <div class="contact">
-      <div class="contact__left">
-        <p class="contact__prompt">Open to data science and statistical modelling roles, in industry or research, where the data has a story in space and time.</p>
-        <p class="contact__status"><span class="dot" aria-hidden="true"></span>Available &nbsp;·&nbsp; Burriana, Spain</p>
-      </div>
-
-      <ul class="contact__log">
-        <li>
-          <a href="mailto:ricardosalespiquer@gmail.com">
-            <span class="contact__idx">01</span>
-            <span class="contact__label">Email</span>
-            <span class="contact__value">ricardosalespiquer@gmail.com</span>
-            <span class="contact__arrow" aria-hidden="true">↗</span>
-          </a>
-        </li>
-        <li>
-          <a href="https://www.linkedin.com/in/ricardo-sales-piquer" target="_blank" rel="noopener">
-            <span class="contact__idx">02</span>
-            <span class="contact__label">LinkedIn</span>
-            <span class="contact__value">/in/ricardo-sales-piquer</span>
-            <span class="contact__arrow" aria-hidden="true">↗</span>
-          </a>
-        </li>
-        <li>
-          <a href="https://github.com/ricardosp4" target="_blank" rel="noopener">
-            <span class="contact__idx">03</span>
-            <span class="contact__label">GitHub</span>
-            <span class="contact__value">@ricardosp4</span>
-            <span class="contact__arrow" aria-hidden="true">↗</span>
-          </a>
-        </li>
-      </ul>
-    </div>
-
-    <p class="footer__meta">Built and maintained by Ricardo Sales Piquer.</p>
+<footer id="contact" class="contact sheet">
+  <div class="wrap">
+    <h2 class="section-title">Contact</h2>
+    <p class="contact__line">Looking for data science and statistical modelling roles, in industry or research.</p>
+    <a class="contact__mail" href="mailto:ricardosalespiquer@gmail.com">ricardosalespiquer@gmail.com</a>
+    <ul class="contact__links">
+      <li><a href="https://www.linkedin.com/in/ricardo-sales-piquer" target="_blank" rel="noopener">LinkedIn</a></li>
+      <li><a href="https://github.com/ricardosp4" target="_blank" rel="noopener">GitHub</a></li>
+    </ul>
+    <p class="contact__credit">Desk and project images are AI-generated illustrations, not project results.</p>
   </div>
 </footer>
 
-<script src="script.js"></script>
+<script src="site.js"></script>
+<script type="module" src="book.js"></script>
 </body>
 </html>

@@ -1,70 +1,45 @@
 # [ricardosp4.github.io](https://ricardosp4.github.io/)
 
-A single-page personal site: hero, about, research/experience, projects, skills, contact.
+A single-page personal site. A desk seen from above fills the screen; a
+hardcover book lies on it. Scrolling into the projects section brings the book
+to the centre and turns its pages: contents, then one spread per project.
 
-Three files, no build step, no dependencies:
-- `index.html` - all content and structure
-- `style.css` - all colors, fonts, spacing
-- `script.js` - the hero background animation only
+- `index.html` - all content: hero, about, the project catalogue, experience, contact
+- `style.css` - colours (light and dark themes), fonts, spacing
+- `site.js` - the theme toggle
+- `book.js` - the desk and the book (three.js), page textures drawn on canvas
+- `vendor/three.module.min.js` - three.js r170, bundled so the site needs no CDN
+- `images/` - the renders (see below)
 
 ## Previewing changes locally
 
-Open `index.html` directly in a browser (double-click it, or drag it into
-a browser window). No server or install needed. Refresh after any edit.
+`book.js` is a module, which browsers don't load from a double-clicked file.
+Serve the folder with `python -m http.server 8000` and open http://localhost:8000.
 
-## Editing content
+## Images
 
-Everything visible on the page lives in `index.html`, split into sections
-you can find by searching for these ids:
+- `images/desk.jpg` - the desk, top-down, empty in the middle. Until it exists
+  the desk is a procedural oak top.
+- `images/lightning.jpg`, `network.jpg`, `flood.jpg` - the left-hand page of
+  each project. Until they exist the page shows a plain backdrop.
 
-| Section | Find it by | What it holds |
-|---|---|---|
-| Hero | `id="top"` | Headline, subheadline, the two buttons |
-| About | `id="about"` | The two paragraphs about you |
-| Research & Experience | `id="work"` | One `<article class="entry">` per job/degree |
-| Projects | `id="projects"` | The `stevents` card - copy this block to add another project |
-| Skills | `id="skills"` | Grouped tag lists |
-| Contact | `id="contact"` | Status line + the email/LinkedIn/GitHub log |
+They are AI-generated illustrations (Flux.1 schnell), credited as such in the
+footer.
 
-**To add a new job or project entry**: copy an existing `<article class="entry">…</article>`
-(for experience) or the whole `.project-card` block (for projects), paste it
-where you want it, and edit the text inside. The styling follows
-automatically, you don't need to touch the CSS.
+## Editing projects
 
-**To change a link**: find the `href="..."` for that item and swap the URL.
+The book and the HTML catalogue hold the same text. Change both:
 
-## Editing style (colors, fonts, spacing)
+- the `PROJECTS` list near the top of `book.js` (what the book prints)
+- the `<article class="catalog__item">` blocks in `index.html` (what screen
+  readers, phones and browsers without WebGL show)
 
-All colors and fonts are defined once at the top of `style.css`, under `:root`:
+## Editing style
 
-```css
---ink: #12181B;         /* page background */
---paper: #EDE7D9;       /* main text color */
---moss: #6B7D5F;        /* secondary accent (status dot, labels) */
---ember: #C1592A;       /* primary accent (buttons, highlights) */
---ash: #8B9089;         /* muted/secondary text */
-
---font-display: 'Fraunces', serif;        /* headings */
---font-body: 'IBM Plex Sans', sans-serif; /* body text */
---font-mono: 'IBM Plex Mono', monospace;  /* labels, dates, nav */
-```
-
-Change a value here and it updates everywhere that variable is used on
-the page, you don't need to hunt through the rest of the file. If you
-swap a font, also update the `<link href="https://fonts.googleapis.com/...">`
-line near the top of `index.html` to load the new one from Google Fonts.
-
-## The hero animation
-
-`script.js` draws the point animation behind the hero headline. You don't
-need to touch it to edit content, it's self-contained. If you ever want
-it removed entirely, delete the `<canvas id="field">` line in `index.html`
-and the `<script src="script.js">` line at the bottom.
+Colours for both themes are at the top of `style.css`. The light theme is
+daylight, the dark theme switches on a desk lamp over the book.
 
 ## Publishing changes
-
-Once you're happy with an edit, push it to GitHub and it goes live
-automatically within a minute or two:
 
 ```
 git add .
@@ -72,9 +47,4 @@ git commit -m "Update <whatever you changed>"
 git push
 ```
 
-## Still to add
-
-- CV PDF download link (drop a `cv.pdf` in this folder and link to it)
-- Career video, once ready, natural fit in the About section
-- A headshot, if you want one, currently the design relies on type + the
-  animation instead of a photo
+It goes live within a minute or two.
