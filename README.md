@@ -1,43 +1,48 @@
 # [ricardosp4.github.io](https://ricardosp4.github.io/)
 
-A single-page personal site. A desk seen from above fills the screen; a
-hardcover book lies on it. Scrolling into the projects section brings the book
-to the centre and turns its pages: contents, then one spread per project.
+A single-screen personal site. A walnut desk in 3D fills the screen. On it lie
+two folders ("About me" and "Projects"), a CV sheet and a business card.
+Clicking one lifts it and opens its panel; the menu at the top opens the same
+panels. The moon/sun button switches between day and night: the sun travels
+round and sets, and a desk lamp switches on.
 
-- `index.html` - all content: hero, about, the project catalogue, experience, contact
-- `style.css` - colours (light and dark themes), fonts, spacing
-- `site.js` - the theme toggle
-- `book.js` - the desk and the book (three.js), page textures drawn on canvas
+- `index.html` - all content: the introduction and the four panels (about, projects, CV, contact)
+- `style.css` - colours (day and night), fonts, the panels
+- `site.js` - opening and closing panels, the day/night toggle
+- `desk.js` - the desk scene (three.js): objects, labels drawn on canvas, light, layout for wide and tall screens
 - `vendor/three.module.min.js` - three.js r170, bundled so the site needs no CDN
-- `images/` - the renders (see below)
+- `images/` - the wood texture and the project images
 
 ## Previewing changes locally
 
-`book.js` is a module, which browsers don't load from a double-clicked file.
+`desk.js` is a module, which browsers don't load from a double-clicked file.
 Serve the folder with `python -m http.server 8000` and open http://localhost:8000.
 
 ## Images
 
-- `images/desk.jpg` - the desk, top-down, empty in the middle. Until it exists
-  the desk is a procedural oak top.
-- `images/lightning.jpg`, `network.jpg`, `flood.jpg` - the left-hand page of
-  each project. Until they exist the page shows a plain backdrop.
+- `images/wood.jpg` - the desk surface, a top-down walnut texture
+- `images/lightning.jpg`, `network.jpg`, `flood.jpg` - one per project, shown in the Projects panel
+- `images/desk.jpg` - the preview image when the link is shared
 
-They are AI-generated illustrations (Flux.1 schnell), credited as such in the
-footer.
+They are AI-generated (Flux.1 schnell); the project images are credited as such
+in the Projects panel.
 
-## Editing projects
+## Editing content
 
-The book and the HTML catalogue hold the same text. Change both:
+Text lives in `index.html`, in the four `<dialog class="panel">` blocks.
+The printed surfaces on the desk (folder labels, the CV sheet, the card) are
+drawn in `desk.js`: `folderSurface`, `cvSurface` and `cardSurface`. If the CV
+changes, update both the CV panel and `cvSurface`.
 
-- the `PROJECTS` list near the top of `book.js` (what the book prints)
-- the `<article class="catalog__item">` blocks in `index.html` (what screen
-  readers, phones and browsers without WebGL show)
+The CV panel's "Download the PDF" button serves `cv.pdf`. To update it, replace
+that file. It is public: keep personal ID, phone number and home address out of it.
 
-## Editing style
+## Moving things on the desk
 
-Colours for both themes are at the top of `style.css`. The light theme is
-daylight, the dark theme switches on a desk lamp over the book.
+Positions are in `LAYOUTS` in `desk.js`: `wide` for landscape screens, `tall`
+for phones. Each entry is `[x, z, rotation]`; x runs to the right, z toward the
+viewer. The camera frames the two folders, the CV, the card and the lamp on its
+own, between the menu and the introduction.
 
 ## Publishing changes
 
