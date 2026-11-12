@@ -80,7 +80,9 @@ img { max-width: 100%; display: block; }
   background: var(--desk);
   touch-action: manipulation;
 }
-.has-desk #desk { display: block; }
+/* shown once the scene has drawn its first frame, so it does not pop in */
+.has-desk #desk { display: block; opacity: 0; transition: opacity 0.7s ease; }
+.desk-ready #desk { opacity: 1; }
 .desk-tip {
   position: fixed; left: 0; top: 0; z-index: 5; margin: 0;
   padding: 6px 12px; border-radius: 999px;
@@ -223,13 +225,40 @@ img { max-width: 100%; display: block; }
   color: var(--text);
   box-shadow: 0 30px 80px rgba(0, 0, 0, 0.45), 0 2px 6px rgba(0, 0, 0, 0.25);
   overflow: hidden;
+
+  /* Closed: small and clear, at the place of its object on the desk
+     (desk.js sets --from-x and --from-y). Opening grows it from there;
+     closing sends it back, a little faster. Browsers without
+     @starting-style or allow-discrete open and close it at once. */
+  opacity: 0;
+  transform: scale(0.9);
+  transform-origin: var(--from-x, 50%) var(--from-y, 60%);
+  transition:
+    opacity 0.2s ease-in,
+    transform 0.2s ease-in,
+    overlay 0.2s allow-discrete,
+    display 0.2s allow-discrete;
 }
-.panel[open] { display: flex; flex-direction: column; animation: panel-in 0.32s cubic-bezier(.2, .8, .2, 1); }
+.panel[open] {
+  display: flex; flex-direction: column;
+  opacity: 1;
+  transform: none;
+  transition-duration: 0.36s;
+  transition-timing-function: cubic-bezier(.2, .8, .2, 1);
+}
+@starting-style {
+  .panel[open] { opacity: 0; transform: scale(0.9); }
+}
 .panel--small { width: min(100% - 32px, 620px); }
-.panel::backdrop { background: rgba(10, 6, 3, 0.45); backdrop-filter: blur(2px); -webkit-backdrop-filter: blur(2px); }
-.panel[open]::backdrop { animation: fade-in 0.32s ease; }
-@keyframes panel-in { from { opacity: 0; transform: translateY(28px) scale(0.98); } }
-@keyframes fade-in { from { opacity: 0; } }
+.panel::backdrop {
+  background: rgba(10, 6, 3, 0.45); backdrop-filter: blur(2px); -webkit-backdrop-filter: blur(2px);
+  opacity: 0;
+  transition: opacity 0.2s ease-in, overlay 0.2s allow-discrete, display 0.2s allow-discrete;
+}
+.panel[open]::backdrop { opacity: 1; transition-duration: 0.36s; transition-timing-function: ease; }
+@starting-style {
+  .panel[open]::backdrop { opacity: 0; }
+}
 
 .panel__bar {
   display: flex; align-items: center; justify-content: space-between;
@@ -333,6 +362,11 @@ img { max-width: 100%; display: block; }
 @media (max-width: 600px) {
   body { font-size: 16px; }
   .panel { width: 100%; max-height: calc(100dvh - 16px); margin-bottom: 0; border-radius: 14px 14px 0 0; }
+  /* a sheet pinned to the bottom edge comes up from it */
+  .panel:not([open]) { transform: translateY(40px); }
+  @starting-style {
+    .panel[open] { transform: translateY(40px); }
+  }
 }
 
 /* Short screens (a laptop with the browser not maximised, a phone on its side):
@@ -346,6 +380,7 @@ img { max-width: 100%; display: block; }
 
 @media (prefers-reduced-motion: reduce) {
   .status__dot { animation: none; }
-  .panel[open], .panel[open]::backdrop { animation: none; }
+  .panel, .panel::backdrop, .panel[open], .panel[open]::backdrop { transition: none; }
+  .has-desk #desk { transition: none; }
   .intro__cards button { transition: none; }
 }

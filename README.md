@@ -2,9 +2,10 @@
 
 A single-screen personal site. A walnut desk in 3D fills the screen. On it lie
 two folders ("About me" and "Projects"), a CV sheet and a business card.
-Clicking one lifts it and opens its panel; the menu at the top opens the same
-panels. The moon/sun button switches between day and night: the sun travels
-round and sets, and a desk lamp switches on.
+Clicking one opens it (a folder's cover swings open, the sheet and the card
+rise toward you) and then its panel; the menu at the top opens the same
+panels. The moon/sun button, or a click on the desk lamp, switches between day
+and night: the sun travels round and sets, and the lamp switches on.
 
 - `index.html` - all content: the introduction and the four panels (about, projects, CV, contact)
 - `style.css` - colours (day and night), fonts, the panels
@@ -32,7 +33,18 @@ in the Projects panel.
 Text lives in `index.html`, in the four `<dialog class="panel">` blocks.
 The printed surfaces on the desk (folder labels, the CV sheet, the card) are
 drawn in `desk.js`: `folderSurface`, `cvSurface` and `cardSurface`. If the CV
-changes, update both the CV panel and `cvSurface`.
+changes, update both the CV panel and `cvSurface`. The sheet you see inside an
+open folder takes its lines from the `page` entries in `buildPrinted`; if the
+About lead or the project titles change, update them there too.
+
+## How things move
+
+Each object has two springs in `desk.js`, `hover` and `open`, and `applyItem`
+turns them into a pose for that kind of object (cover angle, corner curl, card
+tilt). To change how far or how fast something moves, edit `applyItem` and the
+stiffness numbers in `moveItems`. The panels' own open and close transition is
+in `style.css` under "Panels". Visitors who ask their system for reduced
+motion get every change at once, with no movement.
 
 The CV panel's "Download the PDF" button serves `cv.pdf`. To update it, replace
 that file. It is public: keep personal ID, phone number and home address out of it.
@@ -41,8 +53,16 @@ that file. It is public: keep personal ID, phone number and home address out of 
 
 Positions are in `LAYOUTS` in `desk.js`: `wide` for landscape screens, `tall`
 for phones. Each entry is `[x, z, rotation]`; x runs to the right, z toward the
-viewer. The camera frames the two folders, the CV, the card and the lamp on its
-own, between the menu and the introduction.
+viewer. The camera comes as close as it can while keeping the two folders, the
+CV, the card, the lamp and the mug in view, below the menu and clear of the
+introduction; the pencil and the notebook may be cut by the edges. Spreading
+things out moves the camera back, so keep the layout compact.
+
+## Day and night
+
+The change is driven by one number, the sun's height. `STOPS` in `desk.js`
+lists the light at each height (night, blue hour, horizon, golden, day), and
+the durations are in the `themechange` handler (about 4 seconds each way).
 
 ## Publishing changes
 

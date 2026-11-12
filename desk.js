@@ -3,15 +3,17 @@
    A camera looks down at a walnut desk (images/wood.jpg). On it:
      - two folders: "About me" (education, experience) and "Projects"
      - a CV sheet and a business card
-     - a desk lamp, a mug and a pencil
-   Clicking a folder, the sheet or the card lifts it and opens its panel
-   (site.js). The menu opens the same panels.
+     - a desk lamp, a mug, a pencil and a notebook
+   Hovering a folder lifts its cover a little, the sheet lifts a corner, the
+   card tips up. Clicking opens the object (the folder's cover swings open)
+   and then its panel (site.js). The menu opens the same panels. Clicking the
+   lamp switches between day and night.
 
    Light. By day the sun comes in through a window on the left wall. To
-   night: the sun slides along the window and sets, the patch of sunlight
-   stretches and turns orange, the window goes deep blue (the blue hour),
-   and the desk lamp switches on. To day: the lamp goes off and the sun comes
-   up on the other side of the window. See "Light" below. */
+   night: the sun sinks in one steady movement, the patch of sunlight
+   stretches and reddens, the lamp comes on at dusk and the window goes deep
+   blue. To day: the sun comes up on the other side of the window and the
+   lamp goes off as it clears the horizon. See "Light" below. */
 
 import * as THREE from './vendor/three.module.min.js';
 
@@ -117,7 +119,9 @@ const MONO = '"IBM Plex Mono", ui-monospace, monospace';
 /* ---------- Desk ---------- */
 
 const TILE_W = 22, TILE_H = TILE_W * 1088 / 1920;
-const woodTex = new THREE.TextureLoader().load('images/wood.jpg', invalidate);
+let woodLoaded;
+const woodReady = new Promise((r) => { woodLoaded = r; });
+const woodTex = new THREE.TextureLoader().load('images/wood.jpg', () => { invalidate(); woodLoaded(); }, undefined, woodLoaded);
 woodTex.colorSpace = THREE.SRGBColorSpace;
 woodTex.anisotropy = ANISO;
 woodTex.wrapS = woodTex.wrapT = THREE.MirroredRepeatWrapping;
@@ -190,6 +194,26 @@ function folderSurface(colour, dark, title, subtitle, tabText) {
   return { front, tab, plain };
 }
 
+// the top sheet inside a folder: a heading and a few real lines from its panel
+function pageSurface(w, h, heading, lines) {
+  const W = 1000, H = Math.round(W * h / w);
+  const c = makeCanvas(W, H), g = c.getContext('2d');
+  g.fillStyle = '#F7F5EF'; g.fillRect(0, 0, W, H);
+  fibres(g, W, H, '#B9B1A2', 500);
+  grain(g, W, H, 6);
+  const L = 90;
+  g.fillStyle = '#1F1A16';
+  g.font = `400 64px ${DISPLAY}`;
+  g.fillText(heading, L, 140);
+  g.strokeStyle = 'rgba(196,82,31,0.85)'; g.lineWidth = 3;
+  g.beginPath(); g.moveTo(L, 176); g.lineTo(W - L, 176); g.stroke();
+  let y = 250;
+  g.fillStyle = '#5B5148';
+  g.font = `400 34px ${BODY}`;
+  for (const line of lines) y = wrapText(g, line, L, y, W - 2 * L, 50) + 14;
+  return texFrom(c);
+}
+
 function printedPlane(w, h, tex, rough = 0.9) {
   const m = new THREE.Mesh(new THREE.PlaneGeometry(w, h), std({ map: tex, roughness: rough }));
   m.rotation.x = -Math.PI / 2;
@@ -213,24 +237,35 @@ function makeFolder(spec) {
   tabPrint.position.set(tab.position.x, BOARD_T + 0.0008, tab.position.z);
   g.add(tabPrint);
 
-  // a few sheets inside, peeking out at the right and the bottom
-  const sheets = [[0.09, 0.05, 0.012], [0.05, 0.1, -0.02]];
+  // a few sheets inside, peeking out at the right and the bottom. The top
+  // one is printed, and slides out a little when the folder opens.
+  const SW = FOLDER_W - 0.25, SH = FOLDER_H - 0.2;
+  const sheets = [[0.09, 0.05, 0.012], [0.07, 0.07, -0.006], [0.05, 0.1, -0.02]];
+  let topSheet;
   sheets.forEach(([dx, dz, rot], i) => {
-    const p = shadowy(new THREE.Mesh(new THREE.BoxGeometry(FOLDER_W - 0.25, 0.004, FOLDER_H - 0.2), paperMat));
+    const p = new THREE.Group();
+    p.add(shadowy(new THREE.Mesh(new THREE.BoxGeometry(SW, 0.004, SH), paperMat)));
     p.position.set(dx, BOARD_T + 0.004 + i * 0.005, dz);
     p.rotation.y = rot;
     g.add(p);
+    topSheet = p;
   });
+  const page = printedPlane(SW, SH, pageSurface(SW, SH, spec.title, spec.page), 0.93);
+  page.position.y = 0.0028;
+  topSheet.add(page);
+  topSheet.userData.rest = topSheet.position.clone();
 
-  // front board, a touch smaller
-  const fy = BOARD_T + 0.02;
-  const front = shadowy(new THREE.Mesh(new THREE.BoxGeometry(FOLDER_W - 0.02, BOARD_T, FOLDER_H - 0.06), boardMat));
-  front.position.set(-0.01, fy + BOARD_T / 2, 0.03);
-  g.add(front);
-  const frontPrint = printedPlane(FOLDER_W - 0.02, FOLDER_H - 0.06, s.front, 0.86);
-  frontPrint.position.set(-0.01, fy + BOARD_T + 0.0008, 0.03);
-  g.add(frontPrint);
-  return g;
+  // front board, a touch smaller, hinged on the spine (the left edge)
+  const CW = FOLDER_W - 0.02, CH = FOLDER_H - 0.06;
+  const cover = new THREE.Group();
+  cover.position.set(-0.01 - CW / 2, BOARD_T + 0.024, 0.03);
+  const front = shadowy(new THREE.Mesh(new THREE.BoxGeometry(CW, BOARD_T, CH), boardMat));
+  front.position.set(CW / 2, BOARD_T / 2, 0);
+  const frontPrint = printedPlane(CW, CH, s.front, 0.86);
+  frontPrint.position.set(CW / 2, BOARD_T + 0.0008, 0);
+  cover.add(front, frontPrint);
+  g.add(cover);
+  return { group: g, cover, topSheet };
 }
 
 /* ---------- CV sheet ---------- */
@@ -307,17 +342,27 @@ function cvSurface() {
 function curledSheet(w, h, tex) {
   const geo = new THREE.PlaneGeometry(w, h, 24, 32);
   const pos = geo.attributes.position;
-  for (let i = 0; i < pos.count; i++) {
-    const x = pos.getX(i) / (w / 2), yv = pos.getY(i) / (h / 2);
-    // a soft lift at the corners, the way a sheet lies on a desk
-    const lift = 0.018 * Math.pow(Math.max(Math.abs(x), Math.abs(yv)), 6) + 0.01 * Math.pow((x + 1) / 2, 3);
-    pos.setZ(i, lift);
+  let last = -1;
+  // peel: 0 = lying on the desk, 1 = the near right corner picked up
+  function setCurl(peel) {
+    if (Math.abs(peel - last) < 0.0005) return;
+    last = peel;
+    for (let i = 0; i < pos.count; i++) {
+      const x = pos.getX(i) / (w / 2), yv = pos.getY(i) / (h / 2);
+      // a soft lift at the corners, the way a sheet lies on a desk
+      let lift = 0.018 * Math.pow(Math.max(Math.abs(x), Math.abs(yv)), 6) + 0.01 * Math.pow((x + 1) / 2, 3);
+      const d = clamp01(((x - yv) / 2 - 0.3) / 0.7); // 0 along a diagonal fold, 1 at the corner
+      lift += peel * 0.42 * d * d;
+      pos.setZ(i, lift);
+    }
+    pos.needsUpdate = true;
+    geo.computeVertexNormals();
   }
-  geo.computeVertexNormals();
+  setCurl(0);
   const m = shadowy(new THREE.Mesh(geo, std({ map: tex, roughness: 0.93, side: THREE.DoubleSide })));
   m.rotation.x = -Math.PI / 2;
   m.position.y = 0.004;
-  return m;
+  return { mesh: m, setCurl };
 }
 
 /* ---------- Business card ---------- */
@@ -394,7 +439,7 @@ function glowTexture() {
 const glow = new THREE.Sprite(new THREE.SpriteMaterial({
   map: glowTexture(), blending: THREE.AdditiveBlending, depthWrite: false, transparent: true, opacity: 0,
 }));
-glow.scale.setScalar(1.9);
+glow.scale.setScalar(1.5);
 
 function makeLamp() {
   const g = new THREE.Group();
@@ -441,23 +486,42 @@ function makeLamp() {
   head.rotation.x = -0.85;
   head.position.y += 0.15;
   g.add(head);
-  return { group: g, head, bulb };
+
+  // the flex runs from the back of the base off the far edge of the desk.
+  // It is its own object so the camera does not try to frame all of it.
+  const cordPts = [[0, 0.03, -0.5], [0.04, 0.024, -1.1], [0.45, 0.024, -2.1], [0.25, 0.024, -3.8], [0.7, 0.024, -7], [0.5, 0.024, -16]]
+    .map(([x, y, z]) => new THREE.Vector3(x, y, z));
+  const cord = shadowy(new THREE.Mesh(
+    new THREE.TubeGeometry(new THREE.CatmullRomCurve3(cordPts), 90, 0.024, 8),
+    std({ color: 0x2b2420, roughness: 0.9 })
+  ));
+  return { group: g, head, bulb, cord };
 }
 
 function makeMug() {
   const g = new THREE.Group();
   const ceramic = std({ color: 0xefebe4, roughness: 0.25 });
+  // foot ring, wall, a rounded lip, then down the inside
   const pts = [
-    [0, 0], [0.36, 0], [0.4, 0.03], [0.42, 0.85], [0.395, 0.86], [0.375, 0.08], [0, 0.08],
+    [0, 0.012], [0.3, 0.012], [0.31, 0], [0.36, 0], [0.395, 0.025], [0.415, 0.1], [0.42, 0.83],
+    [0.418, 0.853], [0.408, 0.866], [0.394, 0.862], [0.384, 0.84], [0.375, 0.08], [0, 0.08],
   ].map(([x, y]) => new THREE.Vector2(x, y));
-  const body = shadowy(new THREE.Mesh(new THREE.LatheGeometry(pts, 48), ceramic));
-  const coffee = new THREE.Mesh(new THREE.CircleGeometry(0.378, 40), std({ color: 0x24140b, roughness: 0.08 }));
+  const body = shadowy(new THREE.Mesh(new THREE.LatheGeometry(pts, 56), ceramic));
+  const coffee = new THREE.Mesh(new THREE.CircleGeometry(0.381, 48), std({ color: 0x24140b, roughness: 0.08 }));
   coffee.rotation.x = -Math.PI / 2;
   coffee.position.y = 0.7;
-  const handle = shadowy(new THREE.Mesh(new THREE.TorusGeometry(0.2, 0.055, 14, 28, Math.PI), ceramic));
-  handle.position.set(0.41, 0.43, 0);
-  handle.rotation.z = -Math.PI / 2;
-  g.add(body, coffee, handle);
+  // the handle: a little more than half a ring, taller than it is deep, its ends inside the wall
+  const handle = shadowy(new THREE.Mesh(new THREE.TorusGeometry(0.2, 0.05, 14, 36, Math.PI * 1.16), ceramic));
+  handle.position.set(0.4, 0.44, 0);
+  handle.rotation.z = -Math.PI * 0.58;
+  handle.scale.set(1.25, 0.9, 1);
+  const mugGroup = new THREE.Group();
+  mugGroup.add(body, coffee, handle);
+  // a cork coaster under it
+  const coaster = shadowy(new THREE.Mesh(new THREE.CylinderGeometry(0.58, 0.58, 0.04, 48), std({ color: 0xa9825a, roughness: 1 })));
+  coaster.position.y = 0.02;
+  mugGroup.position.y = 0.04;
+  g.add(coaster, mugGroup);
   return g;
 }
 
@@ -475,54 +539,101 @@ function makePencil() {
   ferrule.rotation.z = Math.PI / 2; ferrule.position.x = -L / 2 - 0.06;
   const eraser = shadowy(new THREE.Mesh(new THREE.CylinderGeometry(r, r, 0.12, 12), std({ color: 0xd98c8c, roughness: 0.9 })));
   eraser.rotation.z = Math.PI / 2; eraser.position.x = -L / 2 - 0.18;
-  g.add(body, wood, lead, ferrule, eraser);
-  g.position.y = r;
+  // two crimped rings on the ferrule
+  const rings = [-0.03, 0.03].map((dx) => {
+    const ring = new THREE.Mesh(new THREE.TorusGeometry(r * 1.05, 0.006, 6, 16), steel);
+    ring.rotation.y = Math.PI / 2; ring.position.x = -L / 2 - 0.06 + dx;
+    return ring;
+  });
+  g.add(body, wood, lead, ferrule, eraser, ...rings);
+  g.position.y = r * Math.cos(Math.PI / 6); // it rests on a flat of the hexagon
   return g;
 }
 
+// a slab with rounded corners, lying on the desk (w along x, d along z, t up)
+function roundedSlab(w, d, t, r, mat) {
+  const s = new THREE.Shape();
+  const x = -w / 2, y = -d / 2;
+  s.moveTo(x + r, y); s.lineTo(x + w - r, y); s.quadraticCurveTo(x + w, y, x + w, y + r);
+  s.lineTo(x + w, y + d - r); s.quadraticCurveTo(x + w, y + d, x + w - r, y + d);
+  s.lineTo(x + r, y + d); s.quadraticCurveTo(x, y + d, x, y + d - r);
+  s.lineTo(x, y + r); s.quadraticCurveTo(x, y, x + r, y);
+  const geo = new THREE.ExtrudeGeometry(s, { depth: t, bevelEnabled: false, curveSegments: 6 });
+  geo.rotateX(-Math.PI / 2);
+  return shadowy(new THREE.Mesh(geo, mat));
+}
+
+// A hardback notebook: two boards, the block of pages between them (set back
+// from the edges), the spine on the left, an elastic band and a ribbon.
 function makeNotebook() {
   const g = new THREE.Group();
-  const cover = shadowy(new THREE.Mesh(new THREE.BoxGeometry(2.1, 0.12, 1.45), std({ color: 0x1f2b27, roughness: 0.75 })));
-  cover.position.y = 0.06;
-  const band = shadowy(new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.125, 1.46), std({ color: 0x111111, roughness: 0.6 })));
-  band.position.set(0.85, 0.062, 0);
-  g.add(cover, band);
+  const W = 2.1, D = 1.45, BOARD = 0.016, PAGES = 0.1;
+  const cloth = std({ color: 0x1f2b27, roughness: 0.78 });
+  const bottom = roundedSlab(W, D, BOARD, 0.07, cloth);
+  const block = shadowy(new THREE.Mesh(new THREE.BoxGeometry(W - 0.09, PAGES, D - 0.08), std({ color: 0xe9e2d2, roughness: 0.95 })));
+  block.position.set(-0.025, BOARD + PAGES / 2, 0);
+  const top = roundedSlab(W, D, BOARD, 0.07, cloth);
+  top.position.y = BOARD + PAGES;
+  const spine = shadowy(new THREE.Mesh(new THREE.BoxGeometry(0.03, PAGES + 0.004, D - 0.12), cloth));
+  spine.position.set(-W / 2 + 0.015, BOARD + PAGES / 2, 0);
+  const H = 2 * BOARD + PAGES;
+  const band = shadowy(new THREE.Mesh(new THREE.BoxGeometry(0.055, H + 0.006, D + 0.006), std({ color: 0x111111, roughness: 0.6 })));
+  band.position.set(W / 2 - 0.22, H / 2, 0);
+  const ribbon = shadowy(new THREE.Mesh(new THREE.BoxGeometry(0.045, 0.003, 0.34), std({ color: 0xc4521f, roughness: 0.7 })));
+  ribbon.position.set(-0.35, 0.002, D / 2 + 0.1);
+  ribbon.rotation.y = 0.12;
+  g.add(bottom, block, top, spine, band, ribbon);
   return g;
 }
 
 /* ---------- Build the desk ---------- */
 
-const items = {}; // action -> { group, base: {x, z, rot}, lift, open }
-function addItem(action, group, label) {
+// action -> { group, kind, parts, base: {x, z, rot}, hover, open }
+// hover and open are springs: { x: value now, v: speed, t: target }
+const items = {};
+function addItem(action, group, label, kind, parts = {}) {
   group.traverse((o) => { if (o.isMesh) o.userData.action = action; });
   scene.add(group);
-  items[action] = { group, label, lift: 0, liftTarget: 0, open: 0, openTarget: 0 };
+  items[action] = { group, label, kind, parts, hover: { x: 0, v: 0, t: 0 }, open: { x: 0, v: 0, t: 0 } };
 }
 
 function buildPrinted() {
-  addItem('about', makeFolder({
+  const about = makeFolder({
     colour: '#D6B47F', dark: '#8C6B3F', title: 'About me', subtitle: 'Education · Experience', tab: 'ABOUT', tabShift: 0,
-  }), 'Open About me');
-  addItem('projects', makeFolder({
+    page: ['Computational Mathematics graduate from Universitat Jaume I, finishing an Erasmus Mundus MSc in Geospatial Technologies across Lisbon, Münster and Castellón.'],
+  });
+  addItem('about', about.group, 'Open About me', 'folder', about);
+  const projects = makeFolder({
     colour: '#6F8597', dark: '#3E5162', title: 'Projects', subtitle: 'Three recent projects', tab: 'PROJECTS', tabShift: 0.9,
-  }), 'Open Projects');
+    page: ['01  Lightning that follows lightning', '02  Community Hazard Response Platform', '03  Mapping the Valencia flood from space'],
+  });
+  addItem('projects', projects.group, 'Open Projects', 'folder', projects);
 
   const cv = new THREE.Group();
-  cv.add(curledSheet(CV_W, CV_H, cvSurface()));
-  addItem('cv', cv, 'Open CV');
+  const sheet = curledSheet(CV_W, CV_H, cvSurface());
+  cv.add(sheet.mesh);
+  addItem('cv', cv, 'Open CV', 'sheet', sheet);
 
+  // the card tips up about its near edge, so its face turns to the camera
   const card = new THREE.Group();
-  const cardBody = shadowy(new THREE.Mesh(new THREE.BoxGeometry(CARD_W, 0.01, CARD_H), std({ color: 0xfbfaf6, roughness: 0.85 })));
-  cardBody.position.y = 0.005;
+  const tilt = new THREE.Group();
+  tilt.position.z = CARD_H / 2;
+  const cardBody = shadowy(new THREE.Mesh(new THREE.BoxGeometry(CARD_W, 0.012, CARD_H), std({ color: 0xfbfaf6, roughness: 0.85 })));
+  cardBody.position.set(0, 0.006, -CARD_H / 2);
   const cardPrint = printedPlane(CARD_W, CARD_H, cardSurface(), 0.85);
-  cardPrint.position.y = 0.0105;
-  card.add(cardBody, cardPrint);
-  addItem('contact', card, 'Open Contact');
+  cardPrint.position.set(0, 0.0125, -CARD_H / 2);
+  tilt.add(cardBody, cardPrint);
+  card.add(tilt);
+  addItem('contact', card, 'Open Contact', 'card', { tilt });
+
+  addItem('lamp', lamp.group, '', 'lamp');
 }
 
 const lamp = makeLamp();
+const LAMP_HEAD_TILT = lamp.head.rotation.x;
 lamp.group.scale.setScalar(1.45); // a real desk lamp is about 45 cm tall
-scene.add(lamp.group, glow);
+lamp.cord.scale.setScalar(1.45);
+scene.add(lamp.group, lamp.cord, glow);
 
 const lampLight = new THREE.SpotLight(0xffb769, 0, 0, 0.98, 0.9, 1.3);
 lampLight.castShadow = true;
@@ -534,6 +645,15 @@ const lampTarget = new THREE.Object3D();
 scene.add(lampLight, bulbLight, lampTarget);
 lampLight.target = lampTarget;
 
+// The lamp and the window's skylight stay put, so their shadows are only
+// redrawn when something on the desk moves, not on every frame of a sunset.
+let skyLight = null;
+lampLight.shadow.autoUpdate = false;
+function shadowsDirty() {
+  lampLight.shadow.needsUpdate = true;
+  if (skyLight) skyLight.shadow.needsUpdate = true;
+}
+
 const mug = makeMug();
 const pencil = makePencil();
 const notebook = makeNotebook();
@@ -542,15 +662,17 @@ scene.add(mug, pencil, notebook);
 /* ---------- Layouts: wide screens and tall screens ---------- */
 
 // x to the right, z toward the viewer, rot in radians. The lamp stands at
-// the back of the desk so the camera sees it from the front.
+// the back of the desk, far enough that its shade does not hang over the
+// papers from where the camera sits. On tall screens the folders make a
+// left column and the card, the CV and the lamp a right one.
 const LAYOUTS = {
   wide: {
-    about: [-3.7, 0.3, 0.06], projects: [0.05, 0.45, -0.05], cv: [3.75, 0.7, 0.09], contact: [1.15, 2.75, -0.14],
-    lamp: [5.6, -1.7, -0.62], mug: [-5.7, -1.3], pencil: [3.4, 2.75, -0.35], notebook: [-6.5, 2.5, 0.2],
+    about: [-3.45, -0.55, 0.06], projects: [0.2, -0.35, -0.05], cv: [3.8, 0.75, 0.09], contact: [1.4, 1.95, -0.14],
+    lamp: [6.5, -3.1, -1.08], mug: [-4.6, -2.85], pencil: [1.6, 2.95, -0.2], notebook: [-5.6, 3.3, 0.2],
   },
   tall: {
-    about: [-0.05, -1.95, 0.05], projects: [0.1, 0.75, -0.04], cv: [-0.6, 4.05, 0.07], contact: [1.3, 3.4, -0.22],
-    lamp: [1.75, -4.9, -0.5], mug: [-1.95, -4.35], pencil: [1.55, 4.6, 1.1], notebook: [-2.9, 1.8, 1.4],
+    about: [-1.35, -1.75, 0.05], projects: [-1.25, 0.95, -0.04], cv: [1.75, 1.25, 0.07], contact: [1.35, -1.2, -0.16],
+    lamp: [2.3, -5.4, -0.55], mug: [-2.2, -4.0], pencil: [1.9, 3.3, 0.3], notebook: [-1.7, 3.7, 0.1],
   },
 };
 let layout = LAYOUTS.wide;
@@ -562,17 +684,8 @@ function placeAll() {
     applyItem(it);
   }
   const [lx, lz, lrot] = layout.lamp;
-  lamp.group.position.set(lx, 0, lz);
-  lamp.group.rotation.y = lrot;
-  lamp.group.updateMatrixWorld(true);
-  const bulbPos = lamp.bulb.getWorldPosition(new THREE.Vector3());
-  // the shade's axis, in world space: where the light goes
-  const axis = new THREE.Vector3(0, -1, 0).applyQuaternion(lamp.head.getWorldQuaternion(new THREE.Quaternion()));
-  lampLight.position.copy(bulbPos).addScaledVector(axis, 0.75);
-  bulbLight.position.copy(bulbPos).addScaledVector(axis, 0.95); // just below the rim, so it reaches the arm and the base
-  glow.position.copy(bulbPos).addScaledVector(axis, 0.8); // at the mouth: shows as a halo round the rim
-  const toDesk = -bulbPos.y / axis.y;
-  lampTarget.position.copy(bulbPos).addScaledVector(axis, toDesk);
+  lamp.cord.position.set(lx, 0, lz);
+  lamp.cord.rotation.y = lrot;
   mug.position.set(layout.mug[0], 0, layout.mug[1]);
   pencil.position.set(layout.pencil[0], pencil.position.y, layout.pencil[1]);
   pencil.rotation.y = layout.pencil[2];
@@ -580,13 +693,48 @@ function placeAll() {
   notebook.rotation.y = layout.notebook[2];
 }
 
-// an item lifts a little on hover and rises toward the camera when opened
+// the lamp's lights follow its head
+const _bulb = new THREE.Vector3(), _axis = new THREE.Vector3(), _q = new THREE.Quaternion();
+function aimLampLights() {
+  lamp.group.updateMatrixWorld(true);
+  lamp.bulb.getWorldPosition(_bulb);
+  // the shade's axis, in world space: where the light goes
+  _axis.set(0, -1, 0).applyQuaternion(lamp.head.getWorldQuaternion(_q));
+  lampLight.position.copy(_bulb).addScaledVector(_axis, 0.75);
+  bulbLight.position.copy(_bulb).addScaledVector(_axis, 0.95); // just below the rim, so it reaches the arm and the base
+  glow.position.copy(_bulb).addScaledVector(_axis, 0.3); // just under the bulb: a halo inside the mouth of the shade, not a ball in the air
+  lampTarget.position.copy(_bulb).addScaledVector(_axis, -_bulb.y / _axis.y);
+}
+
+// How each kind of object answers the pointer (h, 0 to 1) and being opened
+// (o, 0 to 1). Each moves the way the real thing would:
+//   folder  the cover lifts a little, then swings open on its spine and the
+//           top sheet slides out
+//   sheet   the near corner is picked up, then the sheet rises to the camera
+//   card    it tips up on its near edge, then rises facing the camera
+//   lamp    the head nods
+const REACH = { folder: 0.025, sheet: 0.12, card: 0.14, lamp: 0 }; // how far it comes toward the camera when open
+const _toCam = new THREE.Vector3(), _at = new THREE.Vector3();
 function applyItem(it) {
   const { x, z, rot } = it.base;
-  const o = smooth(it.open);
-  const toCam = new THREE.Vector3().subVectors(camera.position, new THREE.Vector3(x, 0, z)).multiplyScalar(0.12 * o);
-  it.group.position.set(x + toCam.x, it.lift + toCam.y, z + toCam.z);
-  it.group.rotation.set(0, lerp(rot, rot * 0.3, o), 0);
+  const h = it.hover.x, o = it.open.x, oc = smooth(clamp01(o));
+  _toCam.subVectors(camera.position, _at.set(x, 0, z)).multiplyScalar(REACH[it.kind] * oc);
+  it.group.position.set(x + _toCam.x, _toCam.y, z + _toCam.z);
+  it.group.rotation.set(0, it.kind === 'lamp' ? rot : lerp(rot, rot * 0.3, oc), 0);
+  if (it.kind === 'folder') {
+    // not eased: the spring's small overshoot is the board settling
+    it.parts.cover.rotation.z = Math.max(0, lerp(0.14 * h, 1.8, o));
+    const rest = it.parts.topSheet.userData.rest;
+    it.parts.topSheet.position.set(rest.x + 0.3 * oc, rest.y, rest.z + 0.2 * oc);
+  } else if (it.kind === 'sheet') {
+    it.group.position.y += 0.012 * h * (1 - oc);
+    it.parts.setCurl(Math.max(0, h) * (1 - oc));
+  } else if (it.kind === 'card') {
+    it.parts.tilt.rotation.x = Math.max(0, lerp(0.32 * h, TILT, oc));
+  } else if (it.kind === 'lamp') {
+    lamp.head.rotation.x = LAMP_HEAD_TILT + 0.08 * h;
+    aimLampLights();
+  }
 }
 
 /* ---------- Camera: keep the objects between the menu and the introduction ---------- */
@@ -596,13 +744,27 @@ const camTarget = new THREE.Vector3();
 const _v = new THREE.Vector3();
 
 function fitPoints() {
-  // the four clickable things and the lamp must be in view; the mug, pencil
-  // and notebook may be cropped by the edges
-  const box = new THREE.Box3();
-  for (const it of Object.values(items)) box.union(new THREE.Box3().setFromObject(it.group));
-  box.union(new THREE.Box3().setFromObject(lamp.group));
+  // The four clickable things, the lamp and the mug must be in view; the
+  // pencil and the notebook may be cropped by the edges. The points are
+  // taken from the objects' own surfaces: a box round each one, or round
+  // all of them, would add empty air (above all round the lamp) and push
+  // the camera back. `overIntro` marks the things on the left of a wide
+  // screen, which must also stay clear of the introduction.
   const pts = [];
-  for (const x of [box.min.x, box.max.x]) for (const y of [box.min.y, box.max.y]) for (const z of [box.min.z, box.max.z]) pts.push(new THREE.Vector3(x, y, z));
+  const add = (o, overIntro) => {
+    o.updateMatrixWorld(true);
+    o.traverse((m) => {
+      if (!m.isMesh) return;
+      const pos = m.geometry.attributes.position, step = Math.max(1, Math.floor(pos.count / 90));
+      for (let i = 0; i < pos.count; i += step) {
+        const p = new THREE.Vector3().fromBufferAttribute(pos, i).applyMatrix4(m.matrixWorld);
+        p.overIntro = overIntro;
+        pts.push(p);
+      }
+    });
+  };
+  for (const [action, it] of Object.entries(items)) add(it.group, action === 'about' || action === 'projects');
+  add(mug, true);
   return pts;
 }
 function placeCamera(dist) {
@@ -610,11 +772,15 @@ function placeCamera(dist) {
   camera.lookAt(camTarget);
   camera.updateMatrixWorld(true);
 }
+// introPad: how much higher the things over the introduction must stay,
+// counted as if they reached that much further down
+let introPad = 0;
 function ndcBounds(pts) {
   let x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity;
   for (const p of pts) {
     _v.copy(p).project(camera);
-    x0 = Math.min(x0, _v.x); x1 = Math.max(x1, _v.x); y0 = Math.min(y0, _v.y); y1 = Math.max(y1, _v.y);
+    x0 = Math.min(x0, _v.x); x1 = Math.max(x1, _v.x); y1 = Math.max(y1, _v.y);
+    y0 = Math.min(y0, p.overIntro ? _v.y - introPad : _v.y);
   }
   return { x0, x1, y0, y1 };
 }
@@ -626,12 +792,19 @@ function fitCamera() {
   camera.aspect = aspect;
   camera.updateProjectionMatrix();
   layout = aspect >= 1.05 ? LAYOUTS.wide : LAYOUTS.tall;
-  for (const it of Object.values(items)) { it.lift = 0; }
+  // frame the objects as they lie closed, whatever is open right now
+  const held = Object.values(items).map((it) => [it, it.hover.x, it.open.x]);
+  for (const [it] of held) { it.hover.x = 0; it.open.x = 0; }
   placeAll();
 
   // the safe band, in normalised device coordinates
   const introH = intro ? intro.getBoundingClientRect().height : 160;
-  const topPx = 70, bottomPx = introH * (aspect >= 1.05 ? 0.8 : 1) + 8, sidePx = Math.max(16, w * 0.03);
+  // On wide screens the introduction only takes the bottom left corner:
+  // the things on the right may come down beside it, the ones on the left
+  // stay above it. On tall screens it spans the width.
+  const wide = aspect >= 1.05;
+  const topPx = wide ? 84 : 70, bottomPx = wide ? Math.max(24, h * 0.04) : introH + 8, sidePx = Math.max(12, w * 0.02);
+  introPad = wide ? Math.max(0, 2 * (introH + 10 - bottomPx) / h) : 0;
   const safe = { x0: -1 + 2 * sidePx / w, x1: 1 - 2 * sidePx / w, y0: -1 + 2 * bottomPx / h, y1: 1 - 2 * topPx / h };
   const pts = fitPoints();
   const box = new THREE.Box3().setFromPoints(pts);
@@ -657,8 +830,9 @@ function fitCamera() {
     camTarget.z -= dy;
   }
   placeCamera(camDist);
-  for (const it of Object.values(items)) applyItem(it);
+  for (const [it, h, o] of held) { it.hover.x = h; it.open.x = o; applyItem(it); }
   setTime(timeNow);
+  shadowsDirty();
   invalidate();
 }
 
@@ -672,9 +846,10 @@ function fitCamera() {
      - room: a little bounce from the walls (hemisphere + environment)
    At night only the lamp is on, plus a trace of blue from the window.
 
-   The time of day is one number, from 0 (day) through 1 (sunset) and
-   1.35 (blue hour) to 2 (night). Sunrise runs the other way through the
-   same window, from the other side of the frame. */
+   The time of day is one number, from 0 (day) to 1 (night). It sets the
+   sun's height, and everything else follows from that height: where the
+   sun stands along the window, its colour and strength, the sky, the
+   exposure. Sunrise runs the other way, from the other side of the frame. */
 
 // a soft environment for reflections on the brass, the mug and the coffee
 function makeEnvironment() {
@@ -705,6 +880,9 @@ sky.shadow.camera.left = -12; sky.shadow.camera.right = 12;
 sky.shadow.camera.top = 12; sky.shadow.camera.bottom = -12;
 sky.shadow.camera.near = 1; sky.shadow.camera.far = 60;
 sky.shadow.normalBias = 0.05;
+sky.shadow.autoUpdate = false;
+sky.shadow.needsUpdate = true;
+skyLight = sky;
 const skyTarget = new THREE.Object3D();
 scene.add(sky, skyTarget);
 sky.target = skyTarget;
@@ -749,37 +927,39 @@ function sunDir(a, el) {
 }
 
 const C = (hex) => new THREE.Color(hex);
-const mixC = (a, b, t) => a.clone().lerp(b, clamp01(t));
 
-// keyframes along the time line: [time, values]
-const KEYS = [
-  { t: 0.0,  a: 18,  el: 46, sun: 3.4, sunC: C(0xfff1dc), sky: 1.05, skyC: C(0xdde7fb), hemi: 0.5,  env: 0.55, exp: 1.0 },
-  { t: 0.45, a: -2,  el: 28, sun: 3.6, sunC: C(0xffd49a), sky: 0.85, skyC: C(0xf2e2cf), hemi: 0.42, env: 0.45, exp: 1.02 },
-  { t: 0.8,  a: -6,  el: 17, sun: 3.4, sunC: C(0xff9248), sky: 0.6,  skyC: C(0xffb98a), hemi: 0.3,  env: 0.3,  exp: 1.1 },
-  { t: 1.0,  a: -9,  el: 9,  sun: 0.0, sunC: C(0xff6a35), sky: 0.42, skyC: C(0xd7869a), hemi: 0.2,  env: 0.18, exp: 1.25 },
-  { t: 1.35, a: -10, el: 4,  sun: 0.0, sunC: C(0xff6a35), sky: 0.34, skyC: C(0x5d78c4), hemi: 0.12, env: 0.08, exp: 1.55 },
-  { t: 2.0,  a: -10, el: 2,  sun: 0.0, sunC: C(0xff6a35), sky: 0.16, skyC: C(0x3a4f8c), hemi: 0.09, env: 0.03, exp: 1.85 },
+// The sun's height above the horizon, in degrees, decides the light. These
+// are the stops, from night to day; between two stops the values blend in
+// a straight line, so nothing pauses on the way.
+//   sun   strength of the direct light (gone once the disc is under the horizon)
+//   sky   the soft light from the window
+//   exp   exposure: the eye opens up as it gets dark
+const EL_DAY = 46, EL_NIGHT = -10;
+const STOPS = [
+  { el: -10, sun: 0.0, sunC: C(0xff5a2a), sky: 0.16, skyC: C(0x3a4f8c), hemi: 0.09, env: 0.03, exp: 1.85 }, // night
+  { el: -5,  sun: 0.0, sunC: C(0xff5a2a), sky: 0.32, skyC: C(0x5d78c4), hemi: 0.12, env: 0.08, exp: 1.55 }, // blue hour
+  { el: -1,  sun: 0.0, sunC: C(0xff5a2a), sky: 0.42, skyC: C(0xd7869a), hemi: 0.2,  env: 0.18, exp: 1.25 }, // afterglow
+  { el: 2,   sun: 1.5, sunC: C(0xff6a35), sky: 0.5,  skyC: C(0xf0a080), hemi: 0.24, env: 0.22, exp: 1.18 }, // on the horizon
+  { el: 8,   sun: 3.2, sunC: C(0xff9248), sky: 0.62, skyC: C(0xffb98a), hemi: 0.3,  env: 0.3,  exp: 1.1 },
+  { el: 18,  sun: 3.6, sunC: C(0xffd49a), sky: 0.85, skyC: C(0xf2e2cf), hemi: 0.42, env: 0.45, exp: 1.02 }, // golden
+  { el: 46,  sun: 3.4, sunC: C(0xfff1dc), sky: 1.05, skyC: C(0xdde7fb), hemi: 0.5,  env: 0.55, exp: 1.0 },  // day
 ];
-// sunrise comes up on the other side of the window
-const KEYS_MORNING = [
-  { t: 0.0,  a: 18,  el: 46, sun: 3.4, sunC: C(0xfff1dc), sky: 1.05, skyC: C(0xdde7fb), hemi: 0.5,  env: 0.55, exp: 1.0 },
-  { t: 0.5,  a: 40,  el: 20, sun: 3.0, sunC: C(0xffe0b4), sky: 0.85, skyC: C(0xe9e4dc), hemi: 0.4,  env: 0.42, exp: 1.04 },
-  { t: 0.85, a: 52,  el: 5,  sun: 2.2, sunC: C(0xffa868), sky: 0.55, skyC: C(0xf3b4a0), hemi: 0.26, env: 0.26, exp: 1.15 },
-  { t: 1.0,  a: 56,  el: 0,  sun: 0.0, sunC: C(0xff8048), sky: 0.4,  skyC: C(0xb990b8), hemi: 0.18, env: 0.16, exp: 1.3 },
-  { t: 1.35, a: 58,  el: -4, sun: 0.0, sunC: C(0xff8048), sky: 0.3,  skyC: C(0x5d78c4), hemi: 0.1,  env: 0.07, exp: 1.55 },
-  { t: 2.0,  a: 58,  el: -8, sun: 0.0, sunC: C(0xff8048), sky: 0.16, skyC: C(0x3a4f8c), hemi: 0.09, env: 0.03, exp: 1.85 },
-];
-function sample(keys, t) {
+const _k = { sunC: new THREE.Color(), skyC: new THREE.Color() };
+function lightAt(el) {
   let i = 0;
-  while (i < keys.length - 2 && t > keys[i + 1].t) i++;
-  const k0 = keys[i], k1 = keys[i + 1];
-  const u = smooth(clamp01((t - k0.t) / (k1.t - k0.t)));
-  const out = {};
-  for (const key of Object.keys(k0)) {
-    if (key === 't') continue;
-    out[key] = k0[key].isColor ? mixC(k0[key], k1[key], u) : lerp(k0[key], k1[key], u);
-  }
-  return out;
+  while (i < STOPS.length - 2 && el > STOPS[i + 1].el) i++;
+  const k0 = STOPS[i], k1 = STOPS[i + 1];
+  const u = clamp01((el - k0.el) / (k1.el - k0.el));
+  for (const key of ['sun', 'sky', 'hemi', 'env', 'exp']) _k[key] = lerp(k0[key], k1[key], u);
+  _k.sunC.copy(k0.sunC).lerp(k1.sunC, u);
+  _k.skyC.copy(k0.skyC).lerp(k1.skyC, u);
+  return _k;
+}
+// where the sun stands along the window at a given height: one smooth curve
+// for the evening and one for the morning, which comes from the other side
+function sunSwing(el, fromFarSide) {
+  const s = clamp01((el - EL_NIGHT) / (EL_DAY - EL_NIGHT));
+  return fromFarSide ? 58 - 40 * Math.pow(s, 1.6) : -11 + 29 * Math.pow(s, 2.2);
 }
 
 let lampOn = 0;
@@ -797,40 +977,42 @@ let timeNow = 0, morning = false;
 // The sun's rays pass through it, so its patch on the desk moves and
 // stretches as the sun moves and sinks.
 const WINDOW_POS = new THREE.Vector3(-8.5, 4.2, -3.5);
+const GROUND_DAY = C(0x4a3426), GROUND_NIGHT = C(0x1a110c), BACK_DAY = C(0x1d140e), BACK_NIGHT = C(0x07050a);
 function setTime(t) {
   timeNow = t;
-  const k = sample(morning ? KEYS_MORNING : KEYS, t);
-  const dir = sunDir(k.a, Math.max(k.el, 0.5));
+  const el = lerp(EL_DAY, EL_NIGHT, t);
+  const k = lightAt(el);
+  const dir = sunDir(sunSwing(el, morning), Math.max(el, 0.5));
   sunTarget.position.copy(WINDOW_POS);
   sun.position.copy(WINDOW_POS).addScaledVector(dir, SUN_DIST);
   sun.intensity = k.sun;
   sun.color.copy(k.sunC);
+  sun.shadow.autoUpdate = k.sun > 0; // no sun, no sun shadows to redraw
   skyTarget.position.copy(camTarget);
   sky.position.copy(camTarget).addScaledVector(WINDOW_DIR, 20);
   sky.intensity = k.sky;
   sky.color.copy(k.skyC);
   hemi.intensity = k.hemi;
   hemi.color.copy(k.skyC);
-  hemi.groundColor.copy(mixC(C(0x4a3426), C(0x1a110c), t / 2));
+  hemi.groundColor.copy(GROUND_DAY).lerp(GROUND_NIGHT, t);
   scene.environmentIntensity = k.env;
   renderer.toneMappingExposure = k.exp;
-  scene.background.copy(mixC(C(0x1d140e), C(0x07050a), t / 2));
-}
-
-function flicker(v) { // the lamp catches: on, off, on, then settles
-  if (v <= 0) return 0;
-  if (v < 0.08) return 0.75;
-  if (v < 0.16) return 0.08;
-  if (v < 0.22) return 0.9;
-  return lerp(0.9, 1, smooth(range(v, 0.22, 1)));
+  scene.background.copy(BACK_DAY).lerp(BACK_NIGHT, t);
 }
 
 let isNight = window.currentTheme && window.currentTheme() === 'dark';
 function setInstant() {
-  setTime(isNight ? 2 : 0);
+  setTime(isNight ? 1 : 0);
   setLamp(isNight ? 1 : 0);
+  shadowsDirty();
   invalidate();
 }
+
+// The change of light is one movement: it starts at once when asked and
+// slows into the end. The lamp is a filament bulb: it comes up in about a
+// tenth of a second and fades a little slower, with no flicker.
+const easeLight = (p) => 0.3 * smooth(p) + 0.7 * (1 - (1 - p) * (1 - p));
+const LAMP_ON_BELOW = 4, LAMP_OFF_ABOVE = 0; // sun height, degrees
 
 let lightAnim = null;
 document.addEventListener('themechange', () => {
@@ -839,29 +1021,25 @@ document.addEventListener('themechange', () => {
   isNight = night;
   if (lightAnim) movers.delete(lightAnim);
   if (reduceMotion.matches) { setInstant(); return; }
+  const from = timeNow, to = night ? 1 : 0;
+  // a full sunrise comes up on the far side of the window; a change of
+  // mind half way goes back the way it came
+  if (from <= 0 || from >= 1) morning = !night;
+  const dur = (night ? 4200 : 3800) * Math.abs(to - from) + 200;
   const start = performance.now();
-  const from = timeNow, lampFrom = lampOn;
-  if (night) {
-    // evening: the sun slides along the window and sets, the blue hour, then the lamp
-    morning = false;
-    const dur = 7000 * (2 - from) / 2 + 400;
-    lightAnim = (now) => {
-      const p = clamp01((now - start) / dur);
-      setTime(lerp(from, 2, p));
-      setLamp(Math.max(lampFrom * (1 - p), flicker(range(p, 0.62, 0.9))));
-      return p < 1;
-    };
-  } else {
-    // morning: the lamp goes off, the window turns blue, the sun comes up on the other side
-    morning = true;
-    const dur = 6000 * from / 2 + 400;
-    lightAnim = (now) => {
-      const p = clamp01((now - start) / dur);
-      setLamp(lampFrom * (1 - smooth(range(p, 0, 0.12))));
-      setTime(lerp(from, 0, p));
-      return p < 1;
-    };
-  }
+  let last = start;
+  lightAnim = (now) => {
+    const p = clamp01((now - start) / dur);
+    setTime(lerp(from, to, easeLight(p)));
+    const el = lerp(EL_DAY, EL_NIGHT, timeNow);
+    const want = el < (night ? LAMP_ON_BELOW : LAMP_OFF_ABOVE) ? 1 : 0;
+    const dt = Math.min(Math.max(now - last, 0), 50);
+    last = now;
+    let level = lampOn + (want - lampOn) * (1 - Math.exp(-dt / (want ? 110 : 170)));
+    if (Math.abs(want - level) < 0.004) level = want;
+    setLamp(level);
+    return p < 1 || level !== want;
+  };
   animate(lightAnim);
 });
 
@@ -876,34 +1054,59 @@ function pick(clientX, clientY) {
   ray.setFromCamera(ndc, camera);
   const meshes = [];
   for (const it of Object.values(items)) it.group.traverse((o) => { if (o.isMesh) meshes.push(o); });
-  lamp.group.traverse((o) => { if (o.isMesh) meshes.push(o); }); // the lamp hides what is behind it
   const hit = ray.intersectObjects(meshes, false)[0];
   return hit ? (hit.object.userData.action || null) : null;
 }
 
-function itemMover(it) {
-  if (it.moving) return;
-  it.moving = true;
-  animate(() => {
-    it.lift += (it.liftTarget - it.lift) * 0.2;
-    it.open += (it.openTarget - it.open) * (reduceMotion.matches ? 1 : 0.16);
-    if (Math.abs(it.liftTarget - it.lift) < 0.001) it.lift = it.liftTarget;
-    if (Math.abs(it.openTarget - it.open) < 0.002) it.open = it.openTarget;
-    applyItem(it);
-    const still = it.lift === it.liftTarget && it.open === it.openTarget;
-    if (still) it.moving = false;
-    return !still;
+// A damped spring, stepped by real time so it moves the same at 60 and
+// 120 Hz. k is the stiffness, z the damping (1 = no overshoot).
+function stepSpring(s, dt, k, z) {
+  if (reduceMotion.matches) { s.x = s.t; s.v = 0; return false; }
+  const c = 2 * Math.sqrt(k) * z, n = Math.max(1, Math.ceil(dt / 0.004)), h = dt / n;
+  for (let i = 0; i < n; i++) {
+    s.v += (-k * (s.x - s.t) - c * s.v) * h;
+    s.x += s.v * h;
+  }
+  if (Math.abs(s.x - s.t) < 0.0005 && Math.abs(s.v) < 0.005) { s.x = s.t; s.v = 0; return false; }
+  return true;
+}
+
+let itemsMoving = false, lastStep = 0;
+function moveItems() {
+  if (itemsMoving) return;
+  itemsMoving = true;
+  lastStep = performance.now();
+  animate((now) => {
+    const dt = Math.min(Math.max((now - lastStep) / 1000, 0), 0.05);
+    lastStep = now;
+    let moving = false;
+    for (const it of Object.values(items)) {
+      const a = stepSpring(it.hover, dt, 320, 0.72);
+      const b = stepSpring(it.open, dt, 130, 0.8);
+      applyItem(it);
+      if (a || b) moving = true;
+    }
+    shadowsDirty();
+    if (!moving) itemsMoving = false;
+    return moving;
   });
+}
+
+const themeToggle = document.querySelector('.theme-toggle');
+function labelFor(action) {
+  if (action === 'lamp') return isNight ? 'Switch to day' : 'Switch to night';
+  return items[action].label;
 }
 
 function setHover(action) {
   if (action === hovered) return;
-  if (hovered) { items[hovered].liftTarget = 0; itemMover(items[hovered]); }
+  if (hovered) items[hovered].hover.t = 0;
   hovered = action;
   canvas.style.cursor = action ? 'pointer' : '';
-  if (action) { items[action].liftTarget = 0.09; itemMover(items[action]); }
+  if (action) items[action].hover.t = 1;
+  moveItems();
   if (tip) {
-    tip.textContent = action ? items[action].label : '';
+    tip.textContent = action ? labelFor(action) : '';
     tip.classList.toggle('is-on', !!action);
   }
 }
@@ -919,23 +1122,37 @@ canvas.addEventListener('pointermove', (e) => {
 canvas.addEventListener('pointerleave', () => setHover(null));
 canvas.addEventListener('click', (e) => {
   const action = pick(e.clientX, e.clientY);
-  if (action) deskOpen(action);
+  if (action === 'lamp') {
+    if (themeToggle) themeToggle.click();
+    if (tip && hovered === 'lamp') tip.textContent = labelFor('lamp');
+  } else if (action) deskOpen(action);
 });
 
-// lift the object toward the camera, then open its panel
+// open the object on the desk, then its panel
 function deskOpen(action) {
   const it = items[action];
   setHover(null);
-  if (!it || reduceMotion.matches) { window.openPanel(action); if (it) { it.openTarget = 1; itemMover(it); } return; }
-  it.openTarget = 1;
-  itemMover(it);
-  setTimeout(() => window.openPanel(action), 260);
+  if (!it) { window.openPanel(action); return; }
+  it.open.t = 1;
+  moveItems();
+  if (reduceMotion.matches) window.openPanel(action);
+  else setTimeout(() => window.openPanel(action), 280);
 }
 window.deskOpen = deskOpen;
 
+// the panel grows from where its object lies on the screen
+document.addEventListener('panelopen', (e) => {
+  const it = items[e.detail], d = document.getElementById('panel-' + e.detail);
+  if (!it || !it.base || !d) return;
+  _v.set(it.base.x, 0, it.base.z).project(camera);
+  const sx = (_v.x + 1) / 2 * window.innerWidth, sy = (1 - _v.y) / 2 * window.innerHeight;
+  d.style.setProperty('--from-x', (sx - d.offsetLeft) + 'px');
+  d.style.setProperty('--from-y', (sy - d.offsetTop) + 'px');
+});
+
 document.addEventListener('panelclose', (e) => {
   const it = items[e.detail];
-  if (it) { it.openTarget = 0; itemMover(it); }
+  if (it) { it.open.t = 0; moveItems(); }
 });
 
 /* ---------- Start ---------- */
@@ -956,9 +1173,24 @@ async function start() {
   buildPrinted();
   fitCamera();
   setInstant();
-  // a panel opened from the address (#projects) shows its object lifted
+  // a panel opened from the address (#projects) shows its object open
   const open = Object.keys(items).find((k) => document.getElementById('panel-' + k)?.open);
-  if (open) { items[open].openTarget = 1; itemMover(items[open]); }
+  if (open) { items[open].open.t = 1; moveItems(); }
+
+  // show the desk once the wood has arrived (style.css fades it in)
+  await Promise.race([woodReady, new Promise((r) => setTimeout(r, 1500))]);
+  renderer.render(scene, camera);
+  root.classList.add('desk-ready');
+
+  // once, shortly after: the first folder's cover lifts and drops, to show
+  // that the things on the desk open
+  if (reduceMotion.matches) return;
+  setTimeout(() => {
+    if (hovered || root.classList.contains('panel-open') || document.hidden) return;
+    items.about.hover.t = 1;
+    moveItems();
+    setTimeout(() => { if (hovered !== 'about') { items.about.hover.t = 0; moveItems(); } }, 650);
+  }, 1500);
 }
 start();
 
