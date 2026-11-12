@@ -190,6 +190,8 @@ img { max-width: 100%; display: block; }
   max-width: 24em;
   text-shadow: 0 1px 14px rgba(0, 0, 0, 0.45);
 }
+/* the three words in the serif italic (the body font has no italic loaded), in a soft orange */
+.intro__sub em { font-family: var(--font-display); font-style: italic; color: #F2A873; }
 .intro__hint {
   margin: 0; font-size: 15px; opacity: 0.8;
   text-shadow: 0 1px 12px rgba(0, 0, 0, 0.5);
@@ -395,7 +397,6 @@ img { max-width: 100%; display: block; }
     max-width: 15em;
     margin-bottom: clamp(18px, 3vh, 30px);
   }
-  .has-desk .intro__sub em { font-style: italic; color: #F2A873; }
   .has-desk .intro__hint {
     align-self: flex-start;
     padding-top: 14px;
