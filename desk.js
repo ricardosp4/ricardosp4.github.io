@@ -22,6 +22,8 @@ const canvas = document.getElementById('desk');
 const tip = document.querySelector('.desk-tip');
 const intro = document.querySelector('.intro');
 const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+// the same test as in style.css: the introduction stands on the left of the screen
+const introOnLeft = window.matchMedia('(min-width: 900px) and (min-aspect-ratio: 21/20)');
 
 let renderer;
 try {
@@ -667,8 +669,9 @@ scene.add(mug, pencil, notebook);
 // left column and the card, the CV and the lamp a right one.
 const LAYOUTS = {
   wide: {
-    about: [-3.45, -0.55, 0.06], projects: [0.2, -0.35, -0.05], cv: [3.8, 0.75, 0.09], contact: [1.4, 1.95, -0.14],
-    lamp: [6.5, -3.1, -1.08], mug: [-4.6, -2.85], pencil: [1.6, 2.95, -0.2], notebook: [-5.6, 3.3, 0.2],
+    // the CV leans on the near right corner of the Projects folder (the 4th number is its height)
+    about: [-1.75, -1.0, 0.05], projects: [1.85, -0.8, -0.04], cv: [3.95, 1.6, -0.1, 0.055], contact: [0.95, 1.2, -0.12],
+    lamp: [5.5, -2.7, -1.1], mug: [-2.9, -3.1], pencil: [1.15, 2.55, -0.3], notebook: [-2.15, 2.0, 0.07],
   },
   tall: {
     about: [-1.35, -1.75, 0.05], projects: [-1.25, 0.95, -0.04], cv: [1.75, 1.25, 0.07], contact: [1.35, -1.2, -0.16],
@@ -679,10 +682,18 @@ let layout = LAYOUTS.wide;
 
 function placeAll() {
   for (const [action, it] of Object.entries(items)) {
-    const [x, z, rot] = layout[action];
-    it.base = { x, z, rot };
+    const [x, z, rot, y = 0] = layout[action];
+    it.base = { x, z, rot, y };
     applyItem(it);
   }
+  // on wide screens the CV lies partly on the Projects folder: it slides
+  // off before the cover lifts (see applyItem)
+  const leaning = layout === LAYOUTS.wide && items.cv && items.projects;
+  if (items.cv) items.cv.restsOn = leaning ? items.projects : null;
+  if (items.projects) items.projects.carries = leaning ? items.cv : null;
+  if (leaning) applyItem(items.cv);
+  // the window is nearer on wide screens, so the sun falls on the middle of the desk
+  WINDOW_POS.x = layout === LAYOUTS.wide ? -4.3 : -8.5;
   const [lx, lz, lrot] = layout.lamp;
   lamp.cord.position.set(lx, 0, lz);
   lamp.cord.rotation.y = lrot;
@@ -717,9 +728,14 @@ const REACH = { folder: 0.025, sheet: 0.12, card: 0.14, lamp: 0 }; // how far it
 const _toCam = new THREE.Vector3(), _at = new THREE.Vector3();
 function applyItem(it) {
   const { x, z, rot } = it.base;
-  const h = it.hover.x, o = it.open.x, oc = smooth(clamp01(o));
+  let h = it.hover.x, o = it.open.x;
+  // a folder with a sheet lying on it waits a moment for the sheet to slide off
+  if (it.carries) { h = range(h, 0.3, 1); o = o < 0.1 ? 0 : (o - 0.1) / 0.9; }
+  const oc = smooth(clamp01(o));
   _toCam.subVectors(camera.position, _at.set(x, 0, z)).multiplyScalar(REACH[it.kind] * oc);
-  it.group.position.set(x + _toCam.x, _toCam.y, z + _toCam.z);
+  const under = it.restsOn;
+  const slide = under ? smooth(clamp01(Math.max(under.hover.x * 3.2, under.open.x * 9))) : 0;
+  it.group.position.set(x + _toCam.x + 0.15 * slide, (it.base.y || 0) * (1 - slide) + _toCam.y, z + _toCam.z + 0.42 * slide);
   it.group.rotation.set(0, it.kind === 'lamp' ? rot : lerp(rot, rot * 0.3, oc), 0);
   if (it.kind === 'folder') {
     // not eased: the spring's small overshoot is the board settling
@@ -744,27 +760,25 @@ const camTarget = new THREE.Vector3();
 const _v = new THREE.Vector3();
 
 function fitPoints() {
-  // The four clickable things, the lamp and the mug must be in view; the
-  // pencil and the notebook may be cropped by the edges. The points are
-  // taken from the objects' own surfaces: a box round each one, or round
-  // all of them, would add empty air (above all round the lamp) and push
-  // the camera back. `overIntro` marks the things on the left of a wide
-  // screen, which must also stay clear of the introduction.
+  // The four clickable things, the lamp and the mug must be in view, and on
+  // wide screens the notebook and the pencil too; on tall ones those two
+  // may be cropped by the edges. The points are taken from the objects' own
+  // surfaces: a box round each one, or round all of them, would add empty
+  // air (above all round the lamp) and push the camera back.
   const pts = [];
-  const add = (o, overIntro) => {
+  const add = (o) => {
     o.updateMatrixWorld(true);
     o.traverse((m) => {
       if (!m.isMesh) return;
       const pos = m.geometry.attributes.position, step = Math.max(1, Math.floor(pos.count / 90));
       for (let i = 0; i < pos.count; i += step) {
-        const p = new THREE.Vector3().fromBufferAttribute(pos, i).applyMatrix4(m.matrixWorld);
-        p.overIntro = overIntro;
-        pts.push(p);
+        pts.push(new THREE.Vector3().fromBufferAttribute(pos, i).applyMatrix4(m.matrixWorld));
       }
     });
   };
-  for (const [action, it] of Object.entries(items)) add(it.group, action === 'about' || action === 'projects');
-  add(mug, true);
+  for (const it of Object.values(items)) add(it.group);
+  add(mug);
+  if (layout === LAYOUTS.wide) { add(notebook); add(pencil); }
   return pts;
 }
 function placeCamera(dist) {
@@ -772,15 +786,11 @@ function placeCamera(dist) {
   camera.lookAt(camTarget);
   camera.updateMatrixWorld(true);
 }
-// introPad: how much higher the things over the introduction must stay,
-// counted as if they reached that much further down
-let introPad = 0;
 function ndcBounds(pts) {
   let x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity;
   for (const p of pts) {
     _v.copy(p).project(camera);
-    x0 = Math.min(x0, _v.x); x1 = Math.max(x1, _v.x); y1 = Math.max(y1, _v.y);
-    y0 = Math.min(y0, p.overIntro ? _v.y - introPad : _v.y);
+    x0 = Math.min(x0, _v.x); x1 = Math.max(x1, _v.x); y0 = Math.min(y0, _v.y); y1 = Math.max(y1, _v.y);
   }
   return { x0, x1, y0, y1 };
 }
@@ -799,13 +809,22 @@ function fitCamera() {
 
   // the safe band, in normalised device coordinates
   const introH = intro ? intro.getBoundingClientRect().height : 160;
-  // On wide screens the introduction only takes the bottom left corner:
-  // the things on the right may come down beside it, the ones on the left
-  // stay above it. On tall screens it spans the width.
-  const wide = aspect >= 1.05;
-  const topPx = wide ? 84 : 70, bottomPx = wide ? Math.max(24, h * 0.04) : introH + 8, sidePx = Math.max(12, w * 0.02);
-  introPad = wide ? Math.max(0, 2 * (introH + 10 - bottomPx) / h) : 0;
-  const safe = { x0: -1 + 2 * sidePx / w, x1: 1 - 2 * sidePx / w, y0: -1 + 2 * bottomPx / h, y1: 1 - 2 * topPx / h };
+  // Where the introduction stands on the left (wide screens), the desk's
+  // things start where its text ends and may use the full height. Anywhere
+  // else it lies along the bottom, and they stay above it.
+  const wide = aspect >= 1.05, beside = introOnLeft.matches;
+  const topPx = wide ? 84 : 70, bottomPx = beside ? Math.max(24, h * 0.04) : introH + 8, sidePx = Math.max(12, w * 0.02);
+  let leftPx = sidePx;
+  if (beside && intro) {
+    const words = document.createRange(); // the text itself, not its box
+    for (const el of intro.children) {
+      if (!el.offsetParent) continue;
+      words.selectNodeContents(el);
+      leftPx = Math.max(leftPx, words.getBoundingClientRect().right);
+    }
+    leftPx += w * 0.02;
+  }
+  const safe = { x0: -1 + 2 * leftPx / w, x1: 1 - 2 * sidePx / w, y0: -1 + 2 * bottomPx / h, y1: 1 - 2 * topPx / h };
   const pts = fitPoints();
   const box = new THREE.Box3().setFromPoints(pts);
   camTarget.set((box.min.x + box.max.x) / 2, 0, (box.min.z + box.max.z) / 2);
@@ -824,7 +843,9 @@ function fitCamera() {
     // then slide along the desk so the objects sit in the middle of the band
     const b = ndcBounds(pts);
     const visH = 2 * camDist * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
-    const dx = ((b.x0 + b.x1) / 2 - (safe.x0 + safe.x1) / 2) * visH * aspect / 2;
+    const spare = Math.max(0, (safe.x1 - safe.x0) - (b.x1 - b.x0));
+    const midX = beside ? safe.x0 + (b.x1 - b.x0) / 2 + spare * 0.08 : (safe.x0 + safe.x1) / 2;
+    const dx = ((b.x0 + b.x1) / 2 - midX) * visH * aspect / 2;
     const dy = ((b.y0 + b.y1) / 2 - (safe.y0 + safe.y1) / 2) * visH / 2 / Math.cos(TILT);
     camTarget.x += dx;
     camTarget.z -= dy;

@@ -23,10 +23,12 @@ Serve the folder with `python -m http.server 8000` and open http://localhost:800
 
 - `images/wood.jpg` - the desk surface, a top-down walnut texture
 - `images/lightning.jpg`, `network.jpg`, `flood.jpg` - one per project, shown in the Projects panel
-- `images/desk.jpg` - the preview image when the link is shared
+- `images/desk.jpg` - the preview image when the link is shared: a capture of
+  the site itself at 1200 by 630, by day, without the menu. If the desk or the
+  introduction changes much, take it again.
 
-They are AI-generated (Flux.1 schnell); the project images are credited as such
-in the Projects panel.
+The wood and the project images are AI-generated (Flux.1 schnell); the project
+images are credited as such in the Projects panel.
 
 ## Editing content
 
@@ -53,10 +55,14 @@ that file. It is public: keep personal ID, phone number and home address out of 
 
 Positions are in `LAYOUTS` in `desk.js`: `wide` for landscape screens, `tall`
 for phones. Each entry is `[x, z, rotation]`; x runs to the right, z toward the
-viewer. The camera comes as close as it can while keeping the two folders, the
-CV, the card, the lamp and the mug in view, below the menu and clear of the
-introduction; the pencil and the notebook may be cut by the edges. Spreading
-things out moves the camera back, so keep the layout compact.
+viewer. A fourth number is a height: on wide screens the CV has one because it
+leans on a corner of the Projects folder (it slides off when that folder opens).
+
+On wide screens the introduction stands on the left at mid height and the
+things on the desk gather to its right, starting where its text ends. On
+phones it lies along the bottom and they stay above it. Either way the camera
+comes as close as it can while keeping the objects in view, so spreading things
+out moves it back: keep the layout compact.
 
 ## Day and night
 
